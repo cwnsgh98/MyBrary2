@@ -2,6 +2,7 @@ package com.mybrary.backend.domain.contents.paper.controller;
 
 import com.mybrary.backend.domain.contents.paper.dto.PaperScrapDto;
 import com.mybrary.backend.domain.contents.paper.dto.PaperShareDto;
+import com.mybrary.backend.domain.contents.paper.service.PaperService;
 import com.mybrary.backend.global.format.ApiResponse;
 import com.mybrary.backend.global.format.ResponseCode;
 import io.swagger.v3.oas.annotations.Operation;

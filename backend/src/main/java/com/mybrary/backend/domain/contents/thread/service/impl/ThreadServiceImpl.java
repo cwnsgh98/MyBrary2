@@ -69,6 +69,7 @@ public class ThreadServiceImpl implements ThreadService {
         for (PaperPostDto dto : paperPostDtoList) {
             Paper paper = dto.getPaper();
             paper.setThread(thread);
+            /* 공개여부, 스크랩여부도 포함해서 저장해야함!!이부분 추가해야함!!태그랑 멘션리스트도 저장해야함!! */
             paperRepository.save(paper);
 
             /* 이미지 두개씩 생성, 각 이미지에 해당하는 페이퍼이미지도 생성 */
@@ -104,33 +105,36 @@ public class ThreadServiceImpl implements ThreadService {
     @Override
     public List<ThreadGetDto> getMainAllThread(Long memberId) {
 
-        List<Follow> following = new ArrayList<>();
+//        List<Follow> following = new ArrayList<>();
         /*  팔로잉 목록 조회 */
         memberRepository.findById(memberId)
                         .ifPresentOrElse(
                             member -> {
-                                following = member.getFollowingList();
+                                List<Follow> following = member.getFollowingList();
+
+                                /*  조회한 팔로잉 목록(follow entity)의 following ID 리스트 추출 */
+                                List<Long> followingId = following.stream()
+                                    .map(Follow::getFollowing)
+                                    .map(Member::getId)
+                                    .toList();
                             },
                             () -> {
                                 throw new EntityNotFoundException("Member not found with id: " + memberId);
                             }
                         );
 
-        /*  조회한 팔로잉 목록(follow entity)의 following ID 리스트 추출 */
-        List<Long> followingId = following.stream()
-                                          .map(Follow::getFollowing)
-                                          .map(Member::getId)
-                                          .toList();
 
         /* following id 리스트에 해당되는 mybrary id 리스트 조회 */
-        List<Long> mybraryIdList = mybraryRepository.findAllByMybraryIdByFollowing(List<Long> followingId);
+//        List<Long> mybraryIdList = mybraryRepository.findAllByMybraryIdByFollowing(List<Long> followingId);
+
+        /* 내 id 기준 following중인 멤버의 mybrary id의 쓰레드 최대 5개에 해당하는 페이퍼 리스트 조회, 최신순 정렬 */
 
 
 
         /* 내 팔로잉 멤버의 최신 쓰레드 목록 가져오기 */
         /* 최신의 기준:  일주일 이내 쓰레드만 조회 */
         int followingLatestThreadCnt = 0;   // MAXIMUM: 5
-        List<Thread> threadList = threadRepository.
+//        List<Thread> threadList = threadRepository.
 
         return null;
     }

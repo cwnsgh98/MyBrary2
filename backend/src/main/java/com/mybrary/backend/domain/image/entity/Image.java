@@ -25,8 +25,12 @@ public class Image extends BaseEntity {
     private Long id;
 
     private String thumbnailUrl;
+    /* origin, thumbnail 구분이 사라지므로 필드 수정 필요 */
+    private String originUrl;
 
     private String name;
+
+    private String originName;
 
     private String format;
 

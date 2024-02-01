@@ -29,16 +29,15 @@ class QuerydslChatRepositoryImplTest {
         memberRepository.save(testMember);
 
         Image.builder()
-             .name("image")
-            .originUr1l("originUrl")
+            .name("image")
+            .originUrl("originUrl")
             .thumbnailUrl("thumbNailUrl")
             .originName("originName")
 
-             .build();
+            .build();
 
 
     }
-
 
 
 }

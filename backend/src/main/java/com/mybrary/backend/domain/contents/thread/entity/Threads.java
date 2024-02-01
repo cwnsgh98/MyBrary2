@@ -1,5 +1,6 @@
 package com.mybrary.backend.domain.contents.thread.entity;
 
+import com.mybrary.backend.domain.base.BaseEntity;
 import com.mybrary.backend.domain.contents.paper.entity.Paper;
 import com.mybrary.backend.domain.contents.thread.dto.ThreadPostDto;
 import com.mybrary.backend.domain.follow.entity.Follow;
@@ -30,7 +31,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "threads")
-public class Threads {
+public class Threads extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
