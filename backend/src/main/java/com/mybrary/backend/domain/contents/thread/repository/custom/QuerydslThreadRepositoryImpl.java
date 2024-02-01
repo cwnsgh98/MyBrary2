@@ -31,6 +31,7 @@ public class QuerydslThreadRepositoryImpl implements QuerydslThreadRepositoryCus
 
     /* 쓰레드 기본 정보와 작성자 정보들 관련 dto, threads 날짜순 정렬 -> 헤딩 thread별 paper 관련정보 조회 예정 */
     /* 이게 맞나.. */
+
     public List<GetFollowingThreadDto> getFollowingThreadDtoResults(Long memberId){
         return query.select(Projections.constructor(GetFollowingThreadDto.class, book.id, threads.id, threads.createdAt, member.id, member.nickname, member.profileImage))
             .from(follow)
