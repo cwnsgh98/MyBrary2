@@ -11,7 +11,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ImageGetDto {
+public class ImageGetResponseDto {
 
     /**
      *  이미지 정보 조회

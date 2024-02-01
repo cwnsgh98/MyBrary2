@@ -1,5 +1,6 @@
 package com.mybrary.backend.domain.contents.paper.entity;
 
+import com.mybrary.backend.domain.base.BaseEntity;
 import com.mybrary.backend.domain.contents.thread.entity.Threads;
 import com.mybrary.backend.domain.member.entity.Member;
 import jakarta.persistence.Column;
@@ -13,13 +14,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
-@Getter
+@Getter @Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Paper {
+public class Paper extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,7 +34,7 @@ public class Paper {
 
     @ManyToOne
     @JoinColumn(name = "thread_id")
-    private Threads threadId;
+    private Threads thread;
 
     private String content1;
 

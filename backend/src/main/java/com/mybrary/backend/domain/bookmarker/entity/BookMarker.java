@@ -1,5 +1,6 @@
 package com.mybrary.backend.domain.bookmarker.entity;
 
+import com.mybrary.backend.domain.base.BaseEntity;
 import com.mybrary.backend.domain.book.entity.Book;
 import com.mybrary.backend.domain.mybrary.entity.Mybrary;
 import jakarta.persistence.*;
@@ -11,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class BookMarker {
+public class BookMarker extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

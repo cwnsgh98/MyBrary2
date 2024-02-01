@@ -16,6 +16,7 @@ import com.mybrary.backend.global.jwt.dto.TokenInfo;
 import com.mybrary.backend.global.jwt.repository.RefreshTokenRepository;
 import com.mybrary.backend.global.jwt.token.RefreshToken;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -48,6 +49,7 @@ public class MemberServiceImpl implements MemberService {
 
         Member member = Member.of(requestDto, passwordEncoder.encode(requestDto.getPassword()));
         memberRepository.save(member);
+
         return member.getId();
     }
 
@@ -85,6 +87,7 @@ public class MemberServiceImpl implements MemberService {
             () -> new EmailNotFoundException(ErrorCode.MEMBER_EMAIL_NOT_FOUND)
         );
     }
+
 
     private boolean validatePassword(String input, String encoded) {
         return passwordEncoder.matches(input, encoded);

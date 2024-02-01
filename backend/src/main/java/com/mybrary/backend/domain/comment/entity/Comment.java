@@ -1,5 +1,6 @@
 package com.mybrary.backend.domain.comment.entity;
 
+import com.mybrary.backend.domain.base.BaseEntity;
 import com.mybrary.backend.domain.contents.paper.entity.Paper;
 import com.mybrary.backend.domain.member.entity.Member;
 import jakarta.persistence.Column;
@@ -23,7 +24,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Comment {
+public class Comment extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

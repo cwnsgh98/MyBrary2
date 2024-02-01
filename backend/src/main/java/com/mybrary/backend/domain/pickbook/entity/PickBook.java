@@ -1,5 +1,6 @@
 package com.mybrary.backend.domain.pickbook.entity;
 
+import com.mybrary.backend.domain.base.BaseEntity;
 import com.mybrary.backend.domain.book.entity.Book;
 import com.mybrary.backend.domain.category.entity.Category;
 import jakarta.persistence.*;
@@ -11,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PickBook {
+public class PickBook extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

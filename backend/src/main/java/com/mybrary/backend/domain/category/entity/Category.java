@@ -1,6 +1,7 @@
 package com.mybrary.backend.domain.category.entity;
 
 
+import com.mybrary.backend.domain.base.BaseEntity;
 import com.mybrary.backend.domain.bookshelf.entity.Bookshelf;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -11,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Category {
+public class Category extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -1,6 +1,7 @@
 package com.mybrary.backend.domain.contents.thread.dto;
 
 import com.mybrary.backend.domain.contents.paper.dto.PaperPostDto;
+import com.mybrary.backend.domain.contents.paper.entity.Paper;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,7 +22,13 @@ public class ThreadPostDto {
      */
 
     private Long bookId;
-    private List<PaperPostDto> paperList;
+    private Long mybraryId;
+
+    private List<PaperPostDto> paperPostDtoList;
+    private List<String> tagList;
+    private List<String> mentionList;
+
+    /* 쓰레드의 공개/스크랩 여부는 페이퍼들에 동일하게 적용 */
     private boolean isPaperPublic;
     private boolean isScarpEnable;
 

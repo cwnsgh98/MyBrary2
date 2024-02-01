@@ -1,5 +1,6 @@
 package com.mybrary.backend.domain.mybrary.entity;
 
+import com.mybrary.backend.domain.base.BaseEntity;
 import com.mybrary.backend.domain.image.entity.Image;
 import com.mybrary.backend.domain.member.entity.Member;
 import jakarta.persistence.*;
@@ -13,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Mybrary {
+public class Mybrary extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -1,4 +1,4 @@
-package com.mybrary.backend.domain.contents.paper_image.entity;
+package com.mybrary.backend.domain.contents.paperImage.entity;
 
 import com.mybrary.backend.domain.base.BaseEntity;
 import com.mybrary.backend.domain.contents.paper.entity.Paper;
@@ -15,10 +15,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Builder
-@Getter
+@Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class PaperImage extends BaseEntity {

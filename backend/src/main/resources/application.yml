@@ -1,3 +1,4 @@
+
 spring:
   profiles:
     active: dev
@@ -5,6 +6,7 @@ spring:
       - db
       - redis
       - jwt
+      - aws
 
   jpa:
     open-in-view: false

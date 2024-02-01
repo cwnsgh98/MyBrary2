@@ -24,13 +24,9 @@ public class Image extends BaseEntity {
     @Column(name = "image_id")
     private Long id;
 
-    private String originUr1l;
-
     private String thumbnailUrl;
 
     private String name;
-
-    private String originName;
 
     private String format;
 
