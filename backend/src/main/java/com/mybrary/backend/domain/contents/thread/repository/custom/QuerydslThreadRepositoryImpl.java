@@ -3,7 +3,9 @@ package com.mybrary.backend.domain.contents.thread.repository.custom;
 import static com.mybrary.backend.domain.contents.thread.entity.QThreads.threads;
 
 import com.mybrary.backend.domain.contents.thread.entity.Threads;
+import com.mybrary.backend.domain.member.entity.Member;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
@@ -18,6 +20,7 @@ public class QuerydslThreadRepositoryImpl implements QuerydslThreadRepositoryCus
                                         .where(threads.id.eq(threadId))
                                         .fetchFirst());
         }
+
 
 
 

@@ -5,4 +5,6 @@ import com.mybrary.backend.domain.member.repository.custom.QuerydslMemberReposit
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface MemberRepository extends JpaRepository<Member, Long>, QuerydslMemberRepository {
+
+
 }

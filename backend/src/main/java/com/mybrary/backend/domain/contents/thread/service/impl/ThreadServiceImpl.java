@@ -17,13 +17,16 @@ import com.mybrary.backend.domain.image.service.ImageService;
 import com.mybrary.backend.domain.member.entity.Member;
 import com.mybrary.backend.domain.member.repository.MemberRepository;
 import com.mybrary.backend.domain.member.service.MemberService;
+import com.mybrary.backend.domain.mybrary.repository.MybraryRepository;
 import com.mybrary.backend.domain.mybrary.repository.custom.QuerydslMybraryRepository;
 import com.mybrary.backend.global.exception.member.InvalidLoginAttemptException;
 import com.mybrary.backend.global.format.ErrorCode;
 import jakarta.persistence.EntityNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +44,9 @@ public class ThreadServiceImpl implements ThreadService {
     private final ImageService imageService;
     private final MemberService memberService;
     private final MemberRepository memberRepository;
+    private final MybraryRepository mybraryRepository;
+
+    static final int maximumFollowigThreadCnt = 5;
 
 
     @Transactional
@@ -97,12 +103,34 @@ public class ThreadServiceImpl implements ThreadService {
     @Transactional
     @Override
     public List<ThreadGetDto> getMainAllThread(Long memberId) {
-        /*  팔로워 목록 조회 */
-        Optional<Member> member = memberRepository.findById(memberId);
-        List<Follow> followers = member.get().getFollowingList();
 
-        /*  */
+        List<Follow> following = new ArrayList<>();
+        /*  팔로잉 목록 조회 */
+        memberRepository.findById(memberId)
+                        .ifPresentOrElse(
+                            member -> {
+                                following = member.getFollowingList();
+                            },
+                            () -> {
+                                throw new EntityNotFoundException("Member not found with id: " + memberId);
+                            }
+                        );
 
+        /*  조회한 팔로잉 목록(follow entity)의 following ID 리스트 추출 */
+        List<Long> followingId = following.stream()
+                                          .map(Follow::getFollowing)
+                                          .map(Member::getId)
+                                          .toList();
+
+        /* following id 리스트에 해당되는 mybrary id 리스트 조회 */
+        List<Long> mybraryIdList = mybraryRepository.findAllByMybraryIdByFollowing(List<Long> followingId);
+
+
+
+        /* 내 팔로잉 멤버의 최신 쓰레드 목록 가져오기 */
+        /* 최신의 기준:  일주일 이내 쓰레드만 조회 */
+        int followingLatestThreadCnt = 0;   // MAXIMUM: 5
+        List<Thread> threadList = threadRepository.
 
         return null;
     }
