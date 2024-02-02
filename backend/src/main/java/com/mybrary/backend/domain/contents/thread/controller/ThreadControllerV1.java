@@ -206,7 +206,8 @@ public class ThreadControllerV1 {
     public ResponseEntity<?> getMainAllThread(
         @Parameter(hidden = true) Authentication authentication,
         @RequestParam(name = "page") int number,
-        @RequestBody Long memberid) {
+        @RequestBody Long memberid,
+        @PageableDefault(page = 0, size = 10) Pageable page) {
 
         return response.success(ResponseCode.MAIN_THREAD_LIST_FETCHED.getMessage(),
                                 threadService.getMainAllThread(memberid));

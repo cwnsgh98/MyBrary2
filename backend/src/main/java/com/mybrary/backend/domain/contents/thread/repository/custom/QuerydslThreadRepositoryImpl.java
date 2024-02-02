@@ -11,6 +11,7 @@ import static com.mybrary.backend.domain.mybrary.entity.QMybrary.mybrary;
 
 import com.mybrary.backend.domain.contents.thread.dto.GetFollowingThreadDto;
 import com.mybrary.backend.domain.contents.thread.entity.Threads;
+import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
@@ -33,7 +34,7 @@ public class QuerydslThreadRepositoryImpl implements QuerydslThreadRepositoryCus
     /* 이게 맞나.. */
 
     public List<GetFollowingThreadDto> getFollowingThreadDtoResults(Long memberId){
-        return query.select(Projections.constructor(GetFollowingThreadDto.class, book.id, threads.id, threads.createdAt, member.id, member.nickname, member.profileImage))
+        return query.select(Projections.constructor(GetFollowingThreadDto.class, book.id, threads.id, threads.createdAt, member.id, member.name, member.nickname, member.profileImage.originUrl))
             .from(follow)
             .where(follow.follower.id.eq(memberId))
 //            .innerJoin(follow.following, mybrary.member)
@@ -45,7 +46,8 @@ public class QuerydslThreadRepositoryImpl implements QuerydslThreadRepositoryCus
             .groupBy(threads)
             .fetch();
 
-
     }
+
+
 
 }

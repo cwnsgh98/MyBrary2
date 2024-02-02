@@ -1,5 +1,7 @@
 package com.mybrary.backend.domain.contents.thread.dto;
 
+import com.mybrary.backend.domain.contents.paper.dto.GetFollowingPaperDto;
+import com.mybrary.backend.domain.contents.paper.entity.Paper;
 import com.querydsl.core.annotations.QueryProjection;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,8 +34,8 @@ public class GetFollowingThreadDto {
 
     private String profileUrl;
 
-    /* 해당 쓰레드에 포함된 paperId 목록 */
-    private List<Long> paperIdList;
+    /* 해당 쓰레드에 포함된 paperId 목록, 이건 따로 조인해서 바인딩해야함 */
+    private List<GetFollowingPaperDto> paperList;
 
 
 }

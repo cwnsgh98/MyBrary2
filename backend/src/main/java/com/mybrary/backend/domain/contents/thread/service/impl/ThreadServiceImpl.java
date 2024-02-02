@@ -5,6 +5,7 @@ import com.mybrary.backend.domain.contents.paper.entity.Paper;
 import com.mybrary.backend.domain.contents.paper.repository.PaperRepository;
 import com.mybrary.backend.domain.contents.paperImage.entity.PaperImage;
 import com.mybrary.backend.domain.contents.paperImage.repository.PaperImageRepository;
+import com.mybrary.backend.domain.contents.thread.dto.GetFollowingThreadDto;
 import com.mybrary.backend.domain.contents.thread.dto.ThreadGetDto;
 import com.mybrary.backend.domain.contents.thread.dto.ThreadPostDto;
 import com.mybrary.backend.domain.contents.thread.entity.Threads;
@@ -107,34 +108,25 @@ public class ThreadServiceImpl implements ThreadService {
 
 //        List<Follow> following = new ArrayList<>();
         /*  팔로잉 목록 조회 */
-        memberRepository.findById(memberId)
-                        .ifPresentOrElse(
-                            member -> {
-                                List<Follow> following = member.getFollowingList();
+//        memberRepository.findById(memberId)
+//                        .ifPresentOrElse(
+//                            member -> {
+//                                List<Follow> following = member.getFollowingList();
+//
+//                                /*  조회한 팔로잉 목록(follow entity)의 following ID 리스트 추출 */
+//                                List<Long> followingId = following.stream()
+//                                    .map(Follow::getFollowing)
+//                                    .map(Member::getId)
+//                                    .toList();
+//                            },
+//                            () -> {
+//                                throw new EntityNotFoundException("Member not found with id: " + memberId);
+//                            }
+//                        );
 
-                                /*  조회한 팔로잉 목록(follow entity)의 following ID 리스트 추출 */
-                                List<Long> followingId = following.stream()
-                                    .map(Follow::getFollowing)
-                                    .map(Member::getId)
-                                    .toList();
-                            },
-                            () -> {
-                                throw new EntityNotFoundException("Member not found with id: " + memberId);
-                            }
-                        );
+        /* following중인 멤버의 쓰레드 최대 5개와 관련된 정보 dto 생성(정렬된상태) */
+        List<GetFollowingThreadDto> followingThreadDtos =  threadRepository.getFollowingThreadDtoResults(memberId);
 
-
-        /* following id 리스트에 해당되는 mybrary id 리스트 조회 */
-//        List<Long> mybraryIdList = mybraryRepository.findAllByMybraryIdByFollowing(List<Long> followingId);
-
-        /* 내 id 기준 following중인 멤버의 mybrary id의 쓰레드 최대 5개에 해당하는 페이퍼 리스트 조회, 최신순 정렬 */
-
-
-
-        /* 내 팔로잉 멤버의 최신 쓰레드 목록 가져오기 */
-        /* 최신의 기준:  일주일 이내 쓰레드만 조회 */
-        int followingLatestThreadCnt = 0;   // MAXIMUM: 5
-//        List<Thread> threadList = threadRepository.
 
         return null;
     }
