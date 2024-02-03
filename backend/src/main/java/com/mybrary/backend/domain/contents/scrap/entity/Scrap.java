@@ -4,11 +4,13 @@ import com.mybrary.backend.domain.book.entity.Book;
 import com.mybrary.backend.domain.contents.paper.entity.Paper;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Scrap {

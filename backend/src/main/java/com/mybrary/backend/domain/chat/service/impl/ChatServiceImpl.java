@@ -4,7 +4,7 @@ import com.mybrary.backend.domain.chat.dto.*;
 import com.mybrary.backend.domain.chat.entity.*;
 import com.mybrary.backend.domain.chat.repository.*;
 import com.mybrary.backend.domain.chat.service.ChatService;
-import com.mybrary.backend.domain.contents.thread.dto.ThreadSimpleGetDto;
+import com.mybrary.backend.domain.contents.threads.dto.ThreadSimpleGetDto;
 import com.mybrary.backend.domain.member.dto.MemberInfoDto;
 import com.mybrary.backend.domain.member.entity.Member;
 import com.mybrary.backend.domain.member.repository.MemberRepository;

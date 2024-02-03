@@ -13,8 +13,8 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class ImageServiceImpl implements ImageService {
 
-    ImageRepository imageRepository;
-    S3Uploader s3Uploader;
+    private final ImageRepository imageRepository;
+    private final S3Uploader s3Uploader;
 
     @Override
     public Long createImage(Image image) {

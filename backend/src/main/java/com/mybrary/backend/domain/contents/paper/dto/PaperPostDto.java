@@ -1,6 +1,7 @@
 package com.mybrary.backend.domain.contents.paper.dto;
 
 import com.mybrary.backend.domain.contents.paper.entity.Paper;
+import com.mybrary.backend.domain.contents.tag.entity.Tag;
 import com.mybrary.backend.domain.image.dto.ImagePostDto;
 import com.mybrary.backend.domain.image.entity.Image;
 import java.util.List;
@@ -23,7 +24,6 @@ public class PaperPostDto {
      */
 
     private Paper paper;
-    private List<String> tagList;
-    private List<Long> mentionIdList;
+    private List<Tag> tagList;
 
 }

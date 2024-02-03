@@ -1,7 +1,7 @@
 package com.mybrary.backend.domain.search.controller;
 
 import com.mybrary.backend.domain.book.dto.BookGetDto;
-import com.mybrary.backend.domain.contents.thread.dto.ThreadSimpleGetDto;
+import com.mybrary.backend.domain.contents.threads.dto.ThreadSimpleGetDto;
 import com.mybrary.backend.domain.member.dto.MemberGetDto;
 import com.mybrary.backend.domain.member.dto.MemberInfoDto;
 import com.mybrary.backend.global.format.ApiResponse;
@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;

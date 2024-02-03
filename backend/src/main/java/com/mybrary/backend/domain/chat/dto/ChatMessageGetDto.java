@@ -1,6 +1,6 @@
 package com.mybrary.backend.domain.chat.dto;
 
-import com.mybrary.backend.domain.contents.thread.dto.ThreadSimpleGetDto;
+import com.mybrary.backend.domain.contents.threads.dto.ThreadSimpleGetDto;
 import com.mybrary.backend.domain.member.dto.MemberInfoDto;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
@@ -8,7 +8,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.data.domain.Page;
 
 @Getter
 @Setter

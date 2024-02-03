@@ -1,7 +1,7 @@
 package com.mybrary.backend.domain.contents.paper.entity;
 
 import com.mybrary.backend.domain.base.BaseEntity;
-import com.mybrary.backend.domain.contents.thread.entity.Threads;
+import com.mybrary.backend.domain.contents.threads.entity.Threads;
 import com.mybrary.backend.domain.member.entity.Member;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -30,11 +30,11 @@ public class Paper extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "member_id")
-    private Member memberId;
+    private Member member;
 
     @ManyToOne
-    @JoinColumn(name = "thread_id")
-    private Threads thread;
+    @JoinColumn(name = "threads_id")
+    private Threads threads;
 
     private String content1;
 

@@ -96,18 +96,31 @@ public class Member extends BaseEntity {
     /**
      * 양방향 관계 - 팔로잉/팔로워, 알림 발신자/수신자, 채팅참여, 메시지, 좋아요
      */
+    @Builder.Default
     @OneToMany(mappedBy = "following")
     private List<Follow> followingList = new ArrayList<>();
+
+    @Builder.Default
     @OneToMany(mappedBy = "follower")
     private List<Follow> followerList = new ArrayList<>();
+
+    @Builder.Default
     @OneToMany(mappedBy = "sender")
     private List<Notification> sendList = new ArrayList<>();
+
+    @Builder.Default
     @OneToMany(mappedBy = "receiver")
     private List<Notification> receiveList = new ArrayList<>();
+
+    @Builder.Default
     @OneToMany(mappedBy = "joinMember")
     private List<ChatJoin> chatJoinList = new ArrayList<>();
+
+    @Builder.Default
     @OneToMany(mappedBy = "receiver")
     private List<ChatMessage> messageList = new ArrayList<>();
+
+    @Builder.Default
     @OneToMany(mappedBy = "member")
     private List<Like> likeList = new ArrayList<>();
 

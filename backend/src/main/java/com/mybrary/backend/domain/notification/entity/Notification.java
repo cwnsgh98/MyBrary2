@@ -1,20 +1,14 @@
 package com.mybrary.backend.domain.notification.entity;
 
 import com.mybrary.backend.domain.base.BaseEntity;
-import com.mybrary.backend.domain.book.entity.Book;
-import com.mybrary.backend.domain.comment.entity.Comment;
-import com.mybrary.backend.domain.contents.paper.entity.Paper;
-import com.mybrary.backend.domain.contents.thread.entity.Threads;
 import com.mybrary.backend.domain.member.entity.Member;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
