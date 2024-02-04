@@ -6,17 +6,20 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 @Entity
 @Builder
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@Where(clause = "is_deleted <> true")
+@SQLDelete(sql = "UPDATE image SET is_deleted = TRUE WHERE image_id = ?")
 public class Image extends BaseEntity {
 
     @Id
@@ -24,13 +27,9 @@ public class Image extends BaseEntity {
     @Column(name = "image_id")
     private Long id;
 
-    private String thumbnailUrl;
-    /* origin, thumbnail 구분이 사라지므로 필드 수정 필요 */
-//    private String originUrl;
+    private String imageUrl;
 
-    private String name;
-
-    private String originName;
+    private String imageName;
 
     private String format;
 

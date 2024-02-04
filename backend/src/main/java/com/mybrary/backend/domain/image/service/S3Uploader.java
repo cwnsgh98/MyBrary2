@@ -3,6 +3,7 @@ package com.mybrary.backend.domain.image.service;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.mybrary.backend.domain.image.entity.Image;
+import com.mybrary.backend.domain.image.repository.ImageRepository;
 import java.io.IOException;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class S3Uploader {
 
     private final AmazonS3 amazonS3;
+    private final ImageRepository imageRepository;
 
     @Value("${cloud.aws.s3.bucketName}")
     private String bucketName;
@@ -28,22 +30,23 @@ public class S3Uploader {
 
     // 렌덤한 파일명 생성 (중복 예방하기 위함)
     private String generateFileName(MultipartFile file) {
-        return UUID.randomUUID().toString() + "-" + file.getOriginalFilename();
+        return UUID.randomUUID().toString() + "-" + file.getName();
     }
 
-    public Image uploadFile(MultipartFile file) throws IOException {
+    public Long uploadFile(MultipartFile file) throws IOException {
         String fileName = generateFileName(file);
         String bucketDir = bucketName + dir;
         amazonS3.putObject(bucketDir, fileName, file.getInputStream(), getObjectMetadata(file));
         String format = getObjectMetadata(file).getContentType();
         double size = getObjectMetadata(file).getContentLength();
         Image image = Image.builder()
-                           .name(fileName)
-                           .thumbnailUrl(fileName)
+                           .imageName(fileName)
+                           .imageUrl(fileName)
                            .format(format)
                            .size(size)
                            .build();
-        return image;
+        imageRepository.save(image);
+        return image.getId();
 
     }
 

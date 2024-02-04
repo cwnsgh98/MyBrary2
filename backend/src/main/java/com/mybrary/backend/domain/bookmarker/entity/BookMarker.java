@@ -7,11 +7,15 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 @Entity
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@Where(clause = "is_deleted <> true")
+@SQLDelete(sql = "UPDATE book_marker SET is_deleted = TRUE WHERE book_marker_id = ?")
 public class BookMarker extends BaseEntity {
 
     @Id

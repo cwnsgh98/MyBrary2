@@ -7,12 +7,16 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 @Entity
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Where(clause = "is_deleted <> true")
+@SQLDelete(sql = "UPDATE scrap SET is_deleted = TRUE WHERE scrap_id = ?")
 public class Scrap {
 
     @Id

@@ -8,12 +8,16 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 @Entity
 @Getter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Where(clause = "is_deleted <> true")
+@SQLDelete(sql = "UPDATE mybrary SET is_deleted = TRUE WHERE mybrary_id = ?")
 public class Mybrary extends BaseEntity {
 
     @Id

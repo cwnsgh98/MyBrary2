@@ -11,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 public interface ImageRepository extends JpaRepository<Image, Long> {
 
     /* 2개만 조회됨을 보장해야함 */
-    @Query("SELECT i.thumbnailUrl FROM Image i JOIN PaperImage pi WHERE pi.paper.id = :paperId ORDER BY pi.imageSeq ASC")
+    @Query("SELECT i.imageUrl FROM Image i JOIN PaperImage pi WHERE pi.paper.id = :paperId ORDER BY pi.imageSeq ASC")
     List<String> findByPaperId(@Param("paperId") Long paperId);
 
 }

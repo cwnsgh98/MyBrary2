@@ -22,8 +22,9 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/image")
-public class ImageControllerV1 {
-//    private final ImageService imageService;
+
+public class ImageController {
+
     private final S3Uploader uploader;
 
 //    @Operation(summary = "이미지 업로드", description = "이미지 업로드")
@@ -34,9 +35,9 @@ public class ImageControllerV1 {
 
     @Operation(summary = "이미지 업로드", description = "이미지 업로드")
     @PostMapping
-    public Image uploadFile(@RequestPart("file") MultipartFile file) throws IOException {
-        Image image = uploader.uploadFile(file);
-        return image;     // 키값 반환
+    public Long uploadFile(@RequestPart("file") MultipartFile file) throws IOException {
+        Long imageUrl = uploader.uploadFile(file);
+        return imageUrl;     // 키값 반환
     }
 
 }

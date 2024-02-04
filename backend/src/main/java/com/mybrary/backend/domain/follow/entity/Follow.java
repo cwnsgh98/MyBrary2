@@ -14,12 +14,16 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 @Entity
 @Builder
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@Where(clause = "is_deleted <> true")
+@SQLDelete(sql = "UPDATE follow SET is_deleted = TRUE WHERE follow_id = ?")
 public class Follow extends BaseEntity {
 
     @Id
@@ -34,5 +38,7 @@ public class Follow extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "follower_id")
     private Member follower;
+
+
 
 }

@@ -29,10 +29,10 @@ class QuerydslChatRepositoryImplTest {
         memberRepository.save(testMember);
 
         Image.builder()
-            .name("image")
-            .originUrl("originUrl")
-            .thumbnailUrl("thumbNailUrl")
-            .originName("originName")
+            .imageName("image")
+            .imageUrl("imageUrl")
+//            .imageUrl("imageUrl")
+//            .imageName("imageName")
 
             .build();
 

@@ -24,7 +24,7 @@ public class GetFollowingPaperDto {
 
     private String content2;
 
-    private int likeCount;
+    private int likesCount;
 
     private int commentCount;
 
@@ -39,12 +39,12 @@ public class GetFollowingPaperDto {
 
     @QueryProjection
     public GetFollowingPaperDto(Long paperId, int layoutType, String content1, String content2,
-        int likeCount, int commentCount, int scrapCount, boolean isScrapEnabled) {
+        int likesCount, int commentCount, int scrapCount, boolean isScrapEnabled) {
         this.id = paperId;
         this.layoutType = layoutType;
         this.content1 = content1;
         this.content2 = content2;
-        this.likeCount = likeCount;
+        this.likesCount = likesCount;
         this.commentCount = commentCount;
         this.scrapCount = scrapCount;
         this.isScrapEnabled = isScrapEnabled;

@@ -19,6 +19,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 @Entity
 @Setter
@@ -27,6 +29,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "threads")
+@Where(clause = "is_deleted <> true")
+@SQLDelete(sql = "UPDATE threads SET is_deleted = TRUE WHERE threads_id = ?")
 public class Threads extends BaseEntity {
 
     @Id

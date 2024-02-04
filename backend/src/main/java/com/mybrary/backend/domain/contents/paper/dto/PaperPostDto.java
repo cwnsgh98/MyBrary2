@@ -18,12 +18,12 @@ import lombok.Setter;
 @Builder
 public class PaperPostDto {
 
-    /**
-     *  스레드 저장 요청
-     *  스레드 저장할 때 스레드 객체 안에 List로 같이 받을 것임
-     */
-
-    private Paper paper;
-    private List<Tag> tagList;
+    private String content1;
+    private String content2;
+    private int layoutType;
+    private Long bookId;
+    private boolean isPaperPublic;
+    private boolean isScrapEnable;
+    private List<String> tagList;
 
 }

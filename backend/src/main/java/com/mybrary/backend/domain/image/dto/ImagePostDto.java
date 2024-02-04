@@ -17,10 +17,9 @@ public class ImagePostDto {
      *  이미지 업로드 요청
      */
 
-    private String name;
-    private String originName;
+    private String imageName;
     private String url;
-    private String thumbnailUrl;
+    private String imageUrl;
     private String format;
     private String size;
 

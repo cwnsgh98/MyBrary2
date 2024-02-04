@@ -18,10 +18,9 @@ public class ImageUpdateDto {
      */
 
     private Long imageId;
-    private String name;
-    private String originName;
+    private String imageName;
     private String url;
-    private String thumbnailUrl;
+    private String imageUrl;
     private String format;
     private String size;
 

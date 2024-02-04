@@ -18,12 +18,17 @@ public class ThreadSimpleGetDto {
      *  스레드 검색 or pipi에서 공유해서 메세지로 간 스레드 에 사용
      *  스레드의 썸네일과 좋아요, 댓글, 스크랩수만 보이는 간단한 조회
      */
+    /**
+     *  스레드 검색 or pipi에서 공유해서 메세지로 간 스레드 에 사용
+     *  스레드의 썸네일과 좋아요, 댓글, 스크랩수만 보이는 간단한 조회
+     */
 
     private Long threadId;
     private MemberInfoDto writer;
-    private String thumbnailImageUrl;
+    private String imageUrl;
     private int likeCount;
     private int commentCount;
     private int scrapCount;
+
 
 }

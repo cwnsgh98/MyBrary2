@@ -6,7 +6,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface ImageService {
 
-    public Image uploadImage(MultipartFile file) throws IOException;
+    Long uploadImage(MultipartFile file) throws IOException;
     Long createImage(Image image);
 
 }

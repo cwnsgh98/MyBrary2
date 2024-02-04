@@ -5,7 +5,7 @@ import com.mybrary.backend.domain.chat.entity.ChatJoin;
 import com.mybrary.backend.domain.chat.entity.ChatMessage;
 import com.mybrary.backend.domain.follow.entity.Follow;
 import com.mybrary.backend.domain.image.entity.Image;
-import com.mybrary.backend.domain.contents.like.entity.Like;
+import com.mybrary.backend.domain.contents.likes.entity.Likes;
 import com.mybrary.backend.domain.member.dto.SignupRequestDto;
 import com.mybrary.backend.domain.notification.entity.Notification;
 import jakarta.persistence.Column;
@@ -122,7 +122,7 @@ public class Member extends BaseEntity {
 
     @Builder.Default
     @OneToMany(mappedBy = "member")
-    private List<Like> likeList = new ArrayList<>();
+    private List<Likes> likesList = new ArrayList<>();
 
 }
 

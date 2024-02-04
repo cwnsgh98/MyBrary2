@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/search")
-public class SearchControllerV1 {
+public class SearchController {
 
     private final ApiResponse response;
 

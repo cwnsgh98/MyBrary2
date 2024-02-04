@@ -16,12 +16,16 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 @Entity
 @Builder
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Where(clause = "is_deleted <> true")
+@SQLDelete(sql = "UPDATE paper_image SET is_deleted = TRUE WHERE paper_image_id = ?")
 public class PaperImage extends BaseEntity {
 
     @Id

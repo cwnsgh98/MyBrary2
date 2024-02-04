@@ -26,14 +26,8 @@ public class HomePaperGetDto {
     private int layoutType;
     private String content1;
     private String content2;
-    private String image1Url;
-    private String image2Url;
-    private String image3Url;
-    private String image4Url;
-    private String thumbnailImage1Url;
-    private String thumbnailImage2Url;
-    private String thumbnailImage3Url;
-    private String thumbnailImage4Url;
+    private String imageUrl1;
+    private String imageUrl2;
     private List<String> tagList;
     private List<MemberGetDto> mentionList;
     private int likeCount;

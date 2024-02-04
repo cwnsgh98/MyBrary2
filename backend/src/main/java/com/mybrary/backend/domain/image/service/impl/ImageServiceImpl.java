@@ -22,7 +22,7 @@ public class ImageServiceImpl implements ImageService {
     }
 
     @Override
-    public Image uploadImage(MultipartFile file) throws IOException {
+    public Long uploadImage(MultipartFile file) throws IOException {
         return s3Uploader.uploadFile(file);
     }
 

@@ -15,12 +15,16 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 @Entity
 @Getter @Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Where(clause = "is_deleted <> true")
+@SQLDelete(sql = "UPDATE paper SET is_deleted = TRUE WHERE paper_id = ?")
 public class Paper extends BaseEntity {
 
     @Id
@@ -47,7 +51,7 @@ public class Paper extends BaseEntity {
 
     private int commentCount;
 
-    private int likeCount;
+    private int likesCount;
 
     @Builder.Default()
     private boolean isScrapEnabled = true;
