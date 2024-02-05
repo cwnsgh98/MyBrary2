@@ -16,8 +16,9 @@ import com.mybrary.backend.domain.contents.threads.dto.ThreadUpdateDto;
 import com.mybrary.backend.domain.contents.threads.service.ThreadService;
 import com.mybrary.backend.domain.member.dto.MemberGetDto;
 import com.mybrary.backend.domain.member.dto.MemberInfoDto;
-import com.mybrary.backend.global.format.ApiResponse;
-import com.mybrary.backend.global.format.ResponseCode;
+import com.mybrary.backend.global.format.code.ApiResponse;
+import com.mybrary.backend.global.format.response.ResponseCode;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

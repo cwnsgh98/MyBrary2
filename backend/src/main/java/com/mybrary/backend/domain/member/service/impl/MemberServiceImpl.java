@@ -5,36 +5,41 @@ import com.mybrary.backend.domain.follow.repository.FollowRepository;
 import com.mybrary.backend.domain.member.dto.FollowerDto;
 import com.mybrary.backend.domain.member.dto.FollowingDto;
 import com.mybrary.backend.domain.member.dto.LoginRequestDto;
+import com.mybrary.backend.domain.member.dto.MemberUpdateDto;
 import com.mybrary.backend.domain.member.dto.MyFollowerDto;
 import com.mybrary.backend.domain.member.dto.MyFollowingDto;
+import com.mybrary.backend.domain.member.dto.PasswordUpdateDto;
+import com.mybrary.backend.domain.member.dto.SecessionRequestDto;
 import com.mybrary.backend.domain.member.dto.SignupRequestDto;
 import com.mybrary.backend.domain.member.entity.Member;
 import com.mybrary.backend.domain.member.repository.MemberRepository;
 import com.mybrary.backend.domain.member.service.MemberService;
-import com.mybrary.backend.global.util.CookieUtil;
 import com.mybrary.backend.global.exception.member.DuplicateEmailException;
 import com.mybrary.backend.global.exception.member.EmailNotFoundException;
 import com.mybrary.backend.global.exception.member.InvalidLoginAttemptException;
 import com.mybrary.backend.global.exception.member.PasswordMismatchException;
-import com.mybrary.backend.global.format.ErrorCode;
-import com.mybrary.backend.global.jwt.JwtProvider;
-import com.mybrary.backend.global.jwt.dto.TokenInfo;
+import com.mybrary.backend.global.jwt.TokenInfo;
+import com.mybrary.backend.global.jwt.provider.TokenProvider;
 import com.mybrary.backend.global.jwt.repository.RefreshTokenRepository;
-import com.mybrary.backend.global.jwt.token.RefreshToken;
+import com.mybrary.backend.global.jwt.service.TokenService;
+import com.mybrary.backend.global.util.CookieUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.ArrayList;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class MemberServiceImpl implements MemberService {
 
-    private final JwtProvider jwtProvider;
+    private final TokenProvider tokenProvider;
     private final CookieUtil cookieUtil;
+    private final TokenService tokenService;
     private final PasswordEncoder passwordEncoder;
     private final MemberRepository memberRepository;
     private final FollowRepository followRepository;
@@ -45,15 +50,11 @@ public class MemberServiceImpl implements MemberService {
     public Long create(SignupRequestDto requestDto) {
 
         /* 비밀번호 불일치 */
-        if (!requestDto.getPassword().equals(requestDto.getPasswordConfirm())) {
-            throw new PasswordMismatchException(ErrorCode.MEMBER_PASSWORD_MISMATCH);
-        }
+        checkPasswordConfirmation(requestDto.getPassword(), requestDto.getPasswordConfirm());
 
         /* 이메일 중복 검증 */
         memberRepository.findByEmail(requestDto.getEmail())
-                        .ifPresent(member -> {
-                            throw new DuplicateEmailException(ErrorCode.MEMBER_EMAIL_DUPLICATED);
-                        });
+                        .ifPresent(this::throwDuplicateEmailException);
 
         Member member = Member.of(requestDto, passwordEncoder.encode(requestDto.getPassword()));
         memberRepository.save(member);
@@ -63,44 +64,23 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
-    public void login(LoginRequestDto requestDto, HttpServletResponse response) {
+    public String login(LoginRequestDto requestDto, HttpServletResponse response) {
+        log.info("event=LoginAttempt, email={}", requestDto.getEmail());
 
-        Member member = memberRepository.findByEmail(requestDto.getEmail())
-                                        .orElseThrow(
-                                            () -> new InvalidLoginAttemptException(
-                                                ErrorCode.MEMBER_LOGIN_FAILED));
+        Member member = findMemberByEmail(requestDto.getEmail());
+        isPasswordMatchingWithEncoded(requestDto.getPassword(), member.getPassword());
+        removeOldRefreshToken(requestDto, member);
 
-        if (!validatePassword(requestDto.getPassword(), member.getPassword())) {
-            throw new PasswordMismatchException(ErrorCode.MEMBER_LOGIN_FAILED);
-        }
-
-        refreshTokenRepository.findByValue(member.getEmail())
-                              .ifPresent(refreshTokenRepository::delete);
-
-        TokenInfo tokenInfo = jwtProvider.generateTokenInfo(member.getEmail());
-        refreshTokenRepository.save(RefreshToken.builder()
-                                                .key(tokenInfo.getRefreshToken())
-                                                .value(tokenInfo.getEmail())
-                                                .accessToken(tokenInfo.getAccessToken())
-                                                .build());
-
-        cookieUtil.addCookie("Access-Token", tokenInfo.getAccessToken(),
-                             jwtProvider.getACCESS_TOKEN_TIME() + 60,
-                             response);
+        TokenInfo tokenInfo = tokenProvider.generateTokenInfo(member.getEmail());
+        tokenService.saveToken(tokenInfo);
+        cookieUtil.addCookie("RefreshToken", tokenInfo.getRefreshToken(), tokenProvider.getREFRESH_TOKEN_TIME(), response);
+        return tokenInfo.getAccessToken();
     }
 
     @Override
     public Member findMember(String email) {
-        return memberRepository.findByEmail(email).orElseThrow(
-            () -> new EmailNotFoundException(ErrorCode.MEMBER_EMAIL_NOT_FOUND)
-        );
+        return memberRepository.findByEmail(email).orElseThrow(EmailNotFoundException::new);
     }
-
-
-    private boolean validatePassword(String input, String encoded) {
-        return passwordEncoder.matches(input, encoded);
-    }
-
 
     @Override
     public List<MyFollowingDto> getAllMyFollowing(Long myId) {
@@ -193,5 +173,71 @@ public class MemberServiceImpl implements MemberService {
     public void deleteFollower(Long myId, Long memberId) {
         Follow follow = followRepository.findFollow(memberId, myId);
         follow.setDeleted(true);
+    }
+
+    @Transactional
+    @Override
+    public void updateProfile(MemberUpdateDto member) {
+        Member me = memberRepository.findById(member.getMemberId()).get();
+        me.updateNickname(member.getNickname());
+        me.updateIntro(member.getIntro());
+        me.updateIsProfilePublic(member.isProfilePublic());
+        me.updateIsNotifyEnable(member.isNotifyEnable());
+        /* 프로필이미지 처리 작성해야함 */
+    }
+
+    @Transactional
+    @Override
+    public void updatePassword(Long myId, PasswordUpdateDto password) {
+
+        /* 비밀번호 불일치 */
+        if (!password.getPassword().equals(password.getPasswordConfirm())) {
+            throw new PasswordMismatchException();
+        }
+
+        Member me = memberRepository.findById(myId).get();
+        me.updatePassword(passwordEncoder.encode(password.getPassword()));
+
+    }
+
+    @Transactional
+    @Override
+    public void secession(SecessionRequestDto secession) {
+
+        Member member = memberRepository.findByEmail(secession.getEmail())
+                                        .orElseThrow(InvalidLoginAttemptException::new);
+
+        isPasswordMatchingWithEncoded(secession.getPassword(), member.getPassword());
+        memberRepository.delete(member);
+
+    }
+
+    private Member findMemberByEmail(String email) {
+        Member member = memberRepository.findByEmail(email)
+                                        .orElseThrow(EmailNotFoundException::new);
+        log.info("event=MemberFindByEmail, email={}", email);
+        return member;
+    }
+
+    private void removeOldRefreshToken(LoginRequestDto requestDto, Member member) {
+        refreshTokenRepository.findById(member.getEmail())
+                              .ifPresent(refreshTokenRepository::delete);
+        log.info("event=DeleteExistingRefreshToken, email={}", requestDto.getEmail());
+    }
+
+    private void throwDuplicateEmailException(Member member) {
+        throw new DuplicateEmailException();
+    }
+
+    private void isPasswordMatchingWithEncoded(String input, String encoded) {
+        if (!passwordEncoder.matches(input, encoded)) {
+            throw new InvalidLoginAttemptException();
+        }
+    }
+
+    private void checkPasswordConfirmation(String password, String passwordConfirm) {
+        if (!password.equals(passwordConfirm)) {
+            throw new PasswordMismatchException();
+        }
     }
 }

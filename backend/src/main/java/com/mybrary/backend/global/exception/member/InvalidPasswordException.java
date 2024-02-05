@@ -4,11 +4,11 @@ import com.mybrary.backend.global.format.response.ErrorCode;
 import lombok.Getter;
 
 @Getter
-public class DuplicateEmailException extends RuntimeException {
+public class InvalidPasswordException extends RuntimeException {
 
     private final ErrorCode errorCode;
 
-    public DuplicateEmailException() {
-        this.errorCode = ErrorCode.MEMBER_EMAIL_DUPLICATED;
+    public InvalidPasswordException() {
+        this.errorCode = ErrorCode.MEMBER_PASSWORD_MISMATCH;
     }
 }

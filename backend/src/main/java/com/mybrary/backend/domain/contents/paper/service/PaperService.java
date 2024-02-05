@@ -1,9 +1,12 @@
 package com.mybrary.backend.domain.contents.paper.service;
 
+import com.mybrary.backend.domain.contents.paper.dto.PaperScrapDto;
+import com.mybrary.backend.domain.contents.paper.dto.PaperShareDto;
 import com.mybrary.backend.domain.contents.paper.entity.Paper;
 
 public interface PaperService {
 
-    /* 쓰레드 생성 요청에 페이퍼 생성 요청까지 포함되어 있으므로 ThreadPostDto 사용함 */
-    void createPaper(Paper paper);
+    Long scrapPaper(PaperScrapDto scrap);
+
+    Long sharePaper(PaperShareDto share);
 }

@@ -14,11 +14,14 @@ import com.mybrary.backend.domain.member.dto.email.EmailValidationRequestDto;
 import com.mybrary.backend.domain.member.entity.Member;
 import com.mybrary.backend.domain.member.service.MailService;
 import com.mybrary.backend.domain.member.service.MemberService;
-import com.mybrary.backend.global.format.ApiResponse;
-import com.mybrary.backend.global.format.ResponseCode;
+import com.mybrary.backend.global.annotation.AccessToken;
+import com.mybrary.backend.global.format.code.ApiResponse;
+import com.mybrary.backend.global.format.response.ResponseCode;
+import com.mybrary.backend.global.jwt.service.TokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -45,8 +48,15 @@ import org.springframework.web.multipart.MultipartFile;
 public class MemberController {
 
     private final ApiResponse response;
-    private final MemberService memberService;
+    private final TokenService tokenService;
     private final MailService mailService;
+    private final MemberService memberService;
+
+    @Operation(summary = "토큰 갱신", description = "리프레쉬 토큰을 통해 액세스 토큰 재발급 요청")
+    @PutMapping
+    public ResponseEntity<?> token(@AccessToken @RequestBody String accessToken) {
+        return response.success(tokenService.reIssueAccessToken(accessToken));
+    }
 
     @Operation(summary = "일반 회원가입", description = "일반 회원가입")
     @PostMapping
@@ -111,8 +121,7 @@ public class MemberController {
             return response.fail(bindingResult);
         }
 
-        memberService.login(requestDto, httpServletResponse);
-        return response.success(ResponseCode.LOGIN_SUCCESS.getMessage());
+        return response.success(ResponseCode.LOGIN_SUCCESS.getMessage(), memberService.login(requestDto, httpServletResponse));
     }
 
     @Operation(summary = "소셜 로그인", description = "소셜 로그인")
@@ -202,21 +211,26 @@ public class MemberController {
 
     @Operation(summary = "회원 정보 수정", description = "닉네임, 프로필이미지, 소개,  수정")
     @PutMapping("/profile")
-    public ResponseEntity<?> updateProfile(@RequestBody MemberUpdateDto member, @RequestParam
+    public ResponseEntity<?> updateProfile(@Parameter(hidden = true) Authentication authentication, @RequestBody MemberUpdateDto member, @RequestParam
     MultipartFile multipartFile) {
-        return new ResponseEntity<>(HttpStatus.OK);
+        memberService.updateProfile(member);
+        return response.success(ResponseCode.MEMBER_INFO_UPDATE_SUCCESS.getMessage());
     }
 
     @Operation(summary = "비밀번호 재설정(로그인후)", description = "로그인 후 비밀번호 재설정")
     @PutMapping("/password-update")
-    public ResponseEntity<?> updatePassword(@RequestBody PasswordUpdateDto password) {
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<?> updatePassword(@Parameter(hidden = true) Authentication authentication, @RequestBody PasswordUpdateDto password) {
+        Member me = memberService.findMember(authentication.getName());
+        Long myId = me.getId();
+        memberService.updatePassword(myId, password);
+        return response.success(ResponseCode.PASSWORD_UPDATE_SUCCESS.getMessage());
     }
 
     @Operation(summary = "계정 탈퇴", description = "계정 탈퇴 (삭제처리)")
     @DeleteMapping("/secession")
-    public ResponseEntity<?> secession(@RequestBody SecessionRequestDto secession) {
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<?> secession(@Parameter(hidden = true) Authentication authentication, @RequestBody SecessionRequestDto secession) {
+        memberService.secession(secession);
+        return response.success(ResponseCode.ACCOUNT_SECESSION_SUCCESS.getMessage());
     }
 
 }
