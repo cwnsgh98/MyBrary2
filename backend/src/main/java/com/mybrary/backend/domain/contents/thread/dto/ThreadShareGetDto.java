@@ -15,8 +15,7 @@ import lombok.Setter;
 public class ThreadShareGetDto {
 
     /**
-     *  pipi에서 공유해서 메세지로 간 스레드 에 사용
-     *
+     * pipi에서 공유해서 메세지로 간 스레드 에 사용
      */
 
     private Long threadId;

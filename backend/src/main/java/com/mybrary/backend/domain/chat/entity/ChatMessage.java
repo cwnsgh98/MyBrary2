@@ -55,4 +55,10 @@ public class ChatMessage extends BaseEntity {
     @Column(name = "is_read")
     private boolean isRead;
 
+    public void joinChatRoom(ChatRoom chatRoom) {
+        if (this.chatRoom == null) {
+            this.chatRoom = chatRoom;
+        }
+    }
+
 }

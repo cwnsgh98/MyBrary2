@@ -1,4 +1,4 @@
-package com.mybrary.backend.global.filter;
+package com.mybrary.backend.global.filter.auth;
 
 import com.mybrary.backend.global.exception.jwt.UnauthorizedAccessException;
 import com.mybrary.backend.global.format.code.FilterResponse;

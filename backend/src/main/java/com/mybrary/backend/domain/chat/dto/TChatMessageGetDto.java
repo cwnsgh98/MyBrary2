@@ -17,8 +17,7 @@ import lombok.Setter;
 public class TChatMessageGetDto {
 
     /**
-     *  채팅메세지 조회
-     *  채팅메시지 목록 조회에서 List 안에 넣어서 사용
+     * 채팅메세지 조회 채팅메시지 목록 조회에서 List 안에 넣어서 사용
      */
 
     private Long chatId;
@@ -29,7 +28,7 @@ public class TChatMessageGetDto {
 
     private ThreadShareGetDto thread;
 
-    private boolean isRead;
     private LocalDateTime createdAt;
 
+    private boolean isRead;
 }

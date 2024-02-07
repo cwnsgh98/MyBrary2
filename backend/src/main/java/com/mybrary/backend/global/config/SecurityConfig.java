@@ -1,10 +1,10 @@
 package com.mybrary.backend.global.config;
 
 import com.mybrary.backend.global.entrypoint.JwtAuthenticationEntryPoint;
-import com.mybrary.backend.global.filter.EmailVerificationFilter;
-import com.mybrary.backend.global.filter.JwtAuthenticationFilter;
-import com.mybrary.backend.global.filter.TokenExceptionFilter;
-import com.mybrary.backend.global.filter.TokenRefreshRequestFilter;
+import com.mybrary.backend.global.filter.auth.EmailVerificationFilter;
+import com.mybrary.backend.global.filter.auth.JwtAuthenticationFilter;
+import com.mybrary.backend.global.filter.auth.TokenExceptionFilter;
+import com.mybrary.backend.global.filter.auth.TokenRefreshRequestFilter;
 import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -64,7 +64,8 @@ public class SecurityConfig {
                     "/api/v1/member/login/**",
                     "/api/v1/member/nickname/**",
                     "/api/v1/member/email/**",
-                    "/api/v1/member/password-reset"
+                    "/api/v1/member/password-reset",
+                    "/ws/**"
                 ).permitAll();
                 authorize.anyRequest().authenticated();
             }))

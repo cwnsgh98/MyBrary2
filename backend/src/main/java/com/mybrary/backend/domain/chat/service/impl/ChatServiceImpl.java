@@ -10,6 +10,7 @@ import com.mybrary.backend.domain.member.dto.MemberInfoDto;
 import com.mybrary.backend.domain.member.entity.Member;
 import com.mybrary.backend.domain.member.repository.MemberRepository;
 import com.mybrary.backend.domain.member.service.MemberService;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,8 +19,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Transactional
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class ChatServiceImpl implements ChatService {
 
@@ -28,9 +29,15 @@ public class ChatServiceImpl implements ChatService {
     private final ChatMessageRepository chatMessageRepository;
     private final MemberRepository memberRepository;
     private final MemberService memberService;
-    private final SimpMessagingTemplate messagingTemplate;
     private final ThreadRepository threadRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
+
+    @Override
+    public Long saveChatMessage(ChatMessagePostDto chatMessagePostDto) {
+
+        return null;
+    }
 
     @Transactional(readOnly = true)
     @Override
@@ -94,8 +101,8 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public List<TChatMessageGetDto> getAllChatByChatRoomId(String email,
-                                                          Long chatRoomId, Pageable page) {
+    public List<TChatMessageGetDto> getAllChatByChatRoomId(String email, Long chatRoomId, Pageable page) {
+
         Member me = memberService.findMember(email);
         Long myId = me.getId();
 
@@ -123,7 +130,7 @@ public class ChatServiceImpl implements ChatService {
             }
 
             chatMessageList.add(new TChatMessageGetDto(chatMessage.getId(), you.getId(), chatMessage.getMessage(),
-                                           thread, chatMessage.isRead(), chatMessage.getCreatedAt()));
+                                                       thread, chatMessage.getCreatedAt(), chatMessage.isRead()));
         }
 
         return chatMessageList;
@@ -132,7 +139,7 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public List<TChatMessageGetDto> getAllChatByMemberId(String email,
-                                                        Long memberId, Pageable page) {
+                                                         Long memberId, Pageable page) {
 
         Member me = memberService.findMember(email);
         Long myId = me.getId();
@@ -205,14 +212,13 @@ public class ChatServiceImpl implements ChatService {
 
         // 웹소켓 주소로 보내야할 객체 TChatMessageWebSocketGetDto
         TChatMessageWebSocketGetDto sendMessage = TChatMessageWebSocketGetDto.builder()
-            .chatId(savedMessage.getId())
-            .sender(sender)
-            .message(savedMessage.getMessage())
-            .thread(null)
-            .isRead(savedMessage.isRead())
-            .createdAt(savedMessage.getCreatedAt())
-            .build();
-
+                                                                             .chatId(savedMessage.getId())
+                                                                             .sender(sender)
+                                                                             .message(savedMessage.getMessage())
+                                                                             .thread(null)
+                                                                             .isRead(savedMessage.isRead())
+                                                                             .createdAt(savedMessage.getCreatedAt())
+                                                                             .build();
 
         // 웹소켓 메서드
         String destination = "/sub/chat/" + receiver.getEmail(); // 구독 주소 + 받을 사람 이메일
@@ -274,12 +280,16 @@ public class ChatServiceImpl implements ChatService {
                                                                              .createdAt(savedMessage.getCreatedAt())
                                                                              .build();
 
-
         // 웹소켓 메서드
         String destination = "/sub/chat/" + receiver.getEmail(); // 구독 주소 + 받을 사람 이메일
         messagingTemplate.convertAndSend(destination, sendMessage); // destination으로 sendNotification을 보냄
 
         return savedMessage.getId();
+    }
+
+    @Override
+    public Page<ChatMessageResponseDto> fetchMessageListByChatRoomId(Long chatRoomId, Pageable pageable) {
+        return chatMessageRepository.fetchChatMessagesByRoomId(chatRoomId, pageable);
     }
 
 }

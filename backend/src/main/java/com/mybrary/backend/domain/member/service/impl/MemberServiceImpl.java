@@ -80,34 +80,34 @@ public class MemberServiceImpl implements MemberService {
 
         /* 마이브러리 생성 */
         Mybrary mybrary = Mybrary.builder()
-            .member(member)
-            .backgroundColor(1)
-            .deskColor(1)
-            .bookshelfColor(1)
-            .deskColor(1)
-            .build();
+                                 .member(member)
+                                 .backgroundColor(1)
+                                 .deskColor(1)
+                                 .bookshelfColor(1)
+                                 .deskColor(1)
+                                 .build();
         mybraryRepository.save(mybrary);
 
         /* 책장 생성 */
         Bookshelf bookshelf = Bookshelf.builder()
-            .mybrary(mybrary)
-            .build();
+                                       .mybrary(mybrary)
+                                       .build();
         bookShelfRepository.save(bookshelf);
 
         /* 기본 카테고리 3개 생성 */
-        for(int i = 1;i<=3;i++){
+        for (int i = 1; i <= 3; i++) {
             Category category = Category.builder()
-                .bookshelf(bookshelf)
-                .categoryName("기본" + i)
-                .categorySeq(i)
-                .build();
+                                        .bookshelf(bookshelf)
+                                        .categoryName("기본" + i)
+                                        .categorySeq(i)
+                                        .build();
             categoryRepository.save(category);
         }
 
         /* 롤링페이퍼 생성 */
         RollingPaper rollingPaper = RollingPaper.builder()
-            .mybrary(mybrary)
-            .build();
+                                                .mybrary(mybrary)
+                                                .build();
         // 이건 롤링페이퍼 이미지 바로 참조해야할 것 같다
         // 수정 꼭 하자
         rollingPaperRepository.save(rollingPaper);
@@ -133,6 +133,7 @@ public class MemberServiceImpl implements MemberService {
                                .memberInfo(MemberInfo.builder()
                                                      .memberId(member.getId())
                                                      .email(member.getEmail())
+                                                     .name(member.getName())
                                                      .nickname(member.getNickname())
                                                      .profileImageUrl(member.getProfileImage() == null ? ""
                                                                           : member.getProfileImage().getUrl())
@@ -221,7 +222,7 @@ public class MemberServiceImpl implements MemberService {
 
         // 팔로우를 하려는 상대방의 계정이 공개일 때 -> 바로 팔로우
         // or 요청을 수락했을 때 -> 팔로우
-        if(you.isProfilePublic() || accept){
+        if (you.isProfilePublic() || accept) {
             Follow follow = Follow.builder()
                                   .following(you)
                                   .follower(me)
@@ -233,7 +234,7 @@ public class MemberServiceImpl implements MemberService {
 
         /* 알림 저장하는 로직 추가 */
         // 공개여서 바로 팔로우 했을 때만 알림 보내기
-        if(you.isProfilePublic()){
+        if (you.isProfilePublic()) {
 
         }
 

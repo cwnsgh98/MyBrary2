@@ -1,6 +1,7 @@
 package com.mybrary.backend.domain.chat.entity;
 
 import com.mybrary.backend.domain.base.BaseEntity;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -36,7 +37,14 @@ public class ChatRoom extends BaseEntity {
     private List<ChatJoin> chatJoinList = new ArrayList<>();
 
     @Builder.Default
-    @OneToMany(mappedBy = "chatRoom")
+    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.PERSIST)
     private List<ChatMessage> chatMessageList = new ArrayList<>();
+
+    public void addChatMessage(ChatMessage chatMessage) {
+        this.chatMessageList.add(chatMessage);
+        if (chatMessage.getChatRoom() != this) {
+            chatMessage.joinChatRoom(this);
+        }
+    }
 
 }

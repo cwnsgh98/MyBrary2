@@ -2,18 +2,15 @@ package com.mybrary.backend.domain.chat.dto;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Getter
-@Setter
-@AllArgsConstructor
+@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ChatMessagePostDto {
+@AllArgsConstructor
+public class ChatRoomDto {
 
-    private Long chatRoomId;
-    private Long senderId;
-    private Long threadId;
-    private String message;
+    private String chatRoomId;
 }

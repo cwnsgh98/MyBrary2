@@ -1,13 +1,17 @@
 package com.mybrary.backend.domain.chat.service;
 
+import com.mybrary.backend.domain.chat.dto.ChatMessageResponseDto;
 import com.mybrary.backend.domain.chat.dto.ChatMessagePostDto;
 import com.mybrary.backend.domain.chat.dto.ChatRoomGetDto;
 import com.mybrary.backend.domain.chat.dto.TChatMessageGetDto;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.util.List;
-import org.springframework.security.core.Authentication;
 
 public interface ChatService {
+
+
+    Long saveChatMessage(ChatMessagePostDto chatMessagePostDto);
 
     List<ChatRoomGetDto> getAllChatRoom(String email, Pageable page);
 
@@ -21,4 +25,5 @@ public interface ChatService {
 
     Long threadShare(String email, ChatMessagePostDto message);
 
+    Page<ChatMessageResponseDto> fetchMessageListByChatRoomId(Long chatRoomId, Pageable pageable);
 }
