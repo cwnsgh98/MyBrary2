@@ -2,14 +2,18 @@ package com.mybrary.backend.domain.notification.service.impl;
 
 import com.mybrary.backend.domain.book.entity.Book;
 import com.mybrary.backend.domain.book.repository.BookRepository;
-import com.mybrary.backend.domain.member.dto.MemberInfoDto;
+import com.mybrary.backend.domain.follow.entity.Follow;
+import com.mybrary.backend.domain.follow.repository.FollowRepository;
+import com.mybrary.backend.domain.member.dto.responseDto.MemberInfoDto;
 import com.mybrary.backend.domain.member.entity.Member;
 import com.mybrary.backend.domain.member.repository.MemberRepository;
+import com.mybrary.backend.domain.member.service.MemberService;
 import com.mybrary.backend.domain.notification.dto.NotificationGetDto;
 import com.mybrary.backend.domain.notification.dto.NotificationPostDto;
 import com.mybrary.backend.domain.notification.entity.Notification;
 import com.mybrary.backend.domain.notification.repository.NotificationRepository;
 import com.mybrary.backend.domain.notification.service.NotificationService;
+import com.mybrary.backend.global.exception.member.MemberNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +31,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final MemberRepository memberRepository;
     private final BookRepository bookRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final FollowRepository followRepository;
 
     @Transactional(readOnly = true)
     @Override
@@ -44,7 +49,7 @@ public class NotificationServiceImpl implements NotificationService {
             // 알림을 보낸 사람 조회
             Member member = notify.getSender();
             MemberInfoDto sender = new MemberInfoDto(member.getId(), member.getNickname(),
-                                                     member.getIntro(), null);
+                                                     member.getIntro(), member.getProfileImage().getId(), member.getProfileImage().getUrl());
 
             // DTO에 맞게 저장
             list.add(new NotificationGetDto(notify.getId(), sender, notify.getNotifyType(),
@@ -92,7 +97,7 @@ public class NotificationServiceImpl implements NotificationService {
         Notification savedNotification = notificationRepository.save(newNotification);
 
         // 알림 수신자의 알림구독주소에 저장된 알림 객체 반환하기
-        MemberInfoDto senderDto = new MemberInfoDto(sender.getId(), sender.getNickname(), sender.getIntro(), null);
+        MemberInfoDto senderDto = new MemberInfoDto(sender.getId(), sender.getNickname(), sender.getIntro(), sender.getProfileImage().getId(), sender.getProfileImage().getUrl());
         String bookTitle = null;
         if(savedNotification.getBookId() != null){
             Book book = bookRepository.findById(savedNotification.getBookId()).get();
@@ -107,21 +112,33 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public String findFollower(Long notificationId) {
-        Notification notification = notificationRepository.findById(notificationId).get();
-        return notification.getSender().getEmail();
-    }
-
-    @Override
-    public Long findFollowing(Long notificationId) {
-        Notification notification = notificationRepository.findById(notificationId).get();
-        return notification.getReceiver().getId();
-    }
-
-    @Override
     public void followRefuse(Long notificationId) {
         Notification notification = notificationRepository.findById(notificationId).get();
         notificationRepository.delete(notification);
+    }
+
+    @Override
+    public int followAccept(Long notificationId) {
+
+        Notification notification = notificationRepository.findById(notificationId).orElse(null);
+
+        if (notification != null) {
+            Long followerId = notification.getSender().getId(); // sender
+            Long followingId = notification.getReceiver().getId(); // receiver
+
+            Member follower = memberRepository.findById(followerId).orElseThrow(MemberNotFoundException::new);
+            Member following = memberRepository.findById(followingId).orElseThrow(MemberNotFoundException::new);
+            Follow follow = Follow.builder()
+                                  .following(following)
+                                  .follower(follower)
+                                  .build();
+            followRepository.save(follow);
+
+            notificationRepository.delete(notification);
+
+            return 1;
+        }
+        return 0;
     }
 
 }

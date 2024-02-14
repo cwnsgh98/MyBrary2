@@ -1,42 +1,53 @@
 package com.mybrary.backend.domain.member.service.impl;
 
+import com.mybrary.backend.domain.book.entity.Book;
+import com.mybrary.backend.domain.book.repository.BookRepository;
 import com.mybrary.backend.domain.bookshelf.entity.Bookshelf;
 import com.mybrary.backend.domain.bookshelf.repository.BookShelfRepository;
 import com.mybrary.backend.domain.category.entity.Category;
 import com.mybrary.backend.domain.category.repository.CategoryRepository;
 import com.mybrary.backend.domain.follow.entity.Follow;
 import com.mybrary.backend.domain.follow.repository.FollowRepository;
-import com.mybrary.backend.domain.member.dto.FollowerDto;
-import com.mybrary.backend.domain.member.dto.FollowingDto;
-import com.mybrary.backend.domain.member.dto.LoginRequestDto;
-import com.mybrary.backend.domain.member.dto.MemberUpdateDto;
-import com.mybrary.backend.domain.member.dto.MyFollowerDto;
-import com.mybrary.backend.domain.member.dto.MyFollowingDto;
-import com.mybrary.backend.domain.member.dto.PasswordUpdateDto;
-import com.mybrary.backend.domain.member.dto.SecessionRequestDto;
-import com.mybrary.backend.domain.member.dto.SignupRequestDto;
+import com.mybrary.backend.domain.image.entity.Image;
+import com.mybrary.backend.domain.image.repository.ImageRepository;
 import com.mybrary.backend.domain.member.dto.login.LoginResponseDto;
 import com.mybrary.backend.domain.member.dto.login.MemberInfo;
+import com.mybrary.backend.domain.member.dto.requestDto.LoginRequestDto;
+import com.mybrary.backend.domain.member.dto.requestDto.MemberUpdateDto;
+import com.mybrary.backend.domain.member.dto.requestDto.PasswordUpdateDto;
+import com.mybrary.backend.domain.member.dto.requestDto.SecessionRequestDto;
+import com.mybrary.backend.domain.member.dto.requestDto.SignupRequestDto;
+import com.mybrary.backend.domain.member.dto.responseDto.FollowerDto;
+import com.mybrary.backend.domain.member.dto.responseDto.FollowingDto;
+import com.mybrary.backend.domain.member.dto.responseDto.MyFollowerDto;
+import com.mybrary.backend.domain.member.dto.responseDto.MyFollowingDto;
 import com.mybrary.backend.domain.member.entity.Member;
 import com.mybrary.backend.domain.member.repository.MemberRepository;
 import com.mybrary.backend.domain.member.service.MemberService;
 import com.mybrary.backend.domain.mybrary.entity.Mybrary;
 import com.mybrary.backend.domain.mybrary.repository.MybraryRepository;
+import com.mybrary.backend.domain.notification.dto.NotificationPostDto;
 import com.mybrary.backend.domain.notification.entity.Notification;
 import com.mybrary.backend.domain.notification.repository.NotificationRepository;
+import com.mybrary.backend.domain.notification.service.NotificationService;
 import com.mybrary.backend.domain.rollingpaper.entity.RollingPaper;
 import com.mybrary.backend.domain.rollingpaper.repository.RollingPaperRepository;
+import com.mybrary.backend.global.exception.image.ImageNotFoundException;
 import com.mybrary.backend.global.exception.member.DuplicateEmailException;
 import com.mybrary.backend.global.exception.member.EmailNotFoundException;
+import com.mybrary.backend.global.exception.member.FollowNotFoundException;
+import com.mybrary.backend.global.exception.member.FollowerNotFoundException;
+import com.mybrary.backend.global.exception.member.FollowingNotFoundException;
 import com.mybrary.backend.global.exception.member.InvalidLoginAttemptException;
+import com.mybrary.backend.global.exception.member.MemberNotFoundException;
 import com.mybrary.backend.global.exception.member.PasswordMismatchException;
+import com.mybrary.backend.global.exception.member.ProfileUpdateException;
 import com.mybrary.backend.global.jwt.TokenInfo;
 import com.mybrary.backend.global.jwt.provider.TokenProvider;
 import com.mybrary.backend.global.jwt.repository.RefreshTokenRepository;
 import com.mybrary.backend.global.jwt.service.TokenService;
 import com.mybrary.backend.global.util.CookieUtil;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -51,8 +62,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberServiceImpl implements MemberService {
 
     private final TokenProvider tokenProvider;
-    private final CookieUtil cookieUtil;
     private final TokenService tokenService;
+    private final CookieUtil cookieUtil;
     private final PasswordEncoder passwordEncoder;
     private final MemberRepository memberRepository;
     private final FollowRepository followRepository;
@@ -62,6 +73,10 @@ public class MemberServiceImpl implements MemberService {
     private final CategoryRepository categoryRepository;
     private final RollingPaperRepository rollingPaperRepository;
     private final NotificationRepository notificationRepository;
+    private final NotificationService notificationService;
+    private final ImageRepository imageRepository;
+    private final BookRepository bookRepository;
+
 
     @Transactional
     @Override
@@ -71,7 +86,7 @@ public class MemberServiceImpl implements MemberService {
         checkPasswordConfirmation(requestDto.getPassword(), requestDto.getPasswordConfirm());
 
         /* 이메일 중복 검증 */
-        memberRepository.findByEmail(requestDto.getEmail())
+        memberRepository.searchByEmail(requestDto.getEmail())
                         .ifPresent(this::throwDuplicateEmailException);
 
         /* 회원 생성 */
@@ -80,36 +95,45 @@ public class MemberServiceImpl implements MemberService {
 
         /* 마이브러리 생성 */
         Mybrary mybrary = Mybrary.builder()
-            .member(member)
-            .backgroundColor(1)
-            .deskColor(1)
-            .bookshelfColor(1)
-            .deskColor(1)
-            .build();
+                                 .member(member)
+                                 .backgroundColor(1)
+                                 .deskColor(1)
+                                 .bookshelfColor(1)
+                                 .deskColor(1)
+                                 .easelColor(1)
+                                 .build();
         mybraryRepository.save(mybrary);
 
         /* 책장 생성 */
         Bookshelf bookshelf = Bookshelf.builder()
-            .mybrary(mybrary)
-            .build();
+                                       .mybrary(mybrary)
+                                       .build();
         bookShelfRepository.save(bookshelf);
 
         /* 기본 카테고리 3개 생성 */
-        for(int i = 1;i<=3;i++){
+        for (int i = 1; i <= 3; i++) {
             Category category = Category.builder()
-                .bookshelf(bookshelf)
-                .categoryName("기본" + i)
-                .categorySeq(i)
-                .build();
+                                        .bookshelf(bookshelf)
+                                        .categoryName("기본" + i)
+                                        .categorySeq(i)
+                                        .build();
             categoryRepository.save(category);
         }
 
+        /* 기본 책 1개 생성 */
+        Book book = Book.builder()
+                        .member(member)
+                        .coverTitle("Mybrary 사용 법")
+                        .coverLayout(1)
+                        .coverColor(1)
+                        .build();
+        bookRepository.save(book);
+
         /* 롤링페이퍼 생성 */
         RollingPaper rollingPaper = RollingPaper.builder()
-            .mybrary(mybrary)
-            .build();
-        // 이건 롤링페이퍼 이미지 바로 참조해야할 것 같다
-        // 수정 꼭 하자
+                                                .mybrary(mybrary)
+                                                .rollingPaperString("")
+                                                .build();
         rollingPaperRepository.save(rollingPaper);
 
         return member.getId();
@@ -120,7 +144,7 @@ public class MemberServiceImpl implements MemberService {
     public LoginResponseDto login(LoginRequestDto requestDto, HttpServletResponse response) {
         log.info("event=LoginAttempt, email={}", requestDto.getEmail());
 
-        Member member = findMemberByEmail(requestDto.getEmail());
+        Member member = searchMemberByEmail(requestDto.getEmail());
         isPasswordMatchingWithEncoded(requestDto.getPassword(), member.getPassword());
         removeOldRefreshToken(requestDto, member);
 
@@ -142,74 +166,76 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public Member findMember(String email) {
-        return memberRepository.findByEmail(email).orElseThrow(EmailNotFoundException::new);
+        return memberRepository.searchByEmail(email).orElseThrow(EmailNotFoundException::new);
     }
 
 
     @Override
     public List<MyFollowingDto> getAllMyFollowing(Long myId) {
-        List<Member> myFollowing = memberRepository.getAllFollowing(myId);
 
-        List<MyFollowingDto> list = new ArrayList<>();
-        for (Member member : myFollowing) {
-            list.add(new MyFollowingDto(member.getId(), member.getName(), member.getNickname(), null));
-        }
-
-        return list;
+        List<MyFollowingDto> myFollowing = memberRepository.getAllMyFollowing(myId).orElseThrow(FollowingNotFoundException::new);
+        return myFollowing;
     }
 
     @Override
     public List<MyFollowerDto> getAllMyFollower(Long myId) {
 
-        List<Member> myFollower = memberRepository.getAllFollower(myId);
+        List<MyFollowerDto> myFollower = memberRepository.getAllMyFollower(myId).orElseThrow(FollowerNotFoundException::new);
 
-        List<MyFollowerDto> list = new ArrayList<>();
-        for (Member member : myFollower) {
-            Follow follow = memberRepository.isFollowed(myId, member.getId());
-            boolean isFollowed = false;
-            if (follow != null) {
-                isFollowed = true;
+        for (int i = 0; i < myFollower.size(); i++) {
+            MyFollowerDto follower = myFollower.get(i);
+
+            if (memberRepository.isFollowed(myId, follower.getMemberId()).orElse(null) != null) {
+                myFollower.get(i).setFollowStatus(3);
+            } else if (memberRepository.isRequested(myId, follower.getMemberId()).orElse(null) != null) {
+                myFollower.get(i).setFollowStatus(2);
+            } else {
+                myFollower.get(i).setFollowStatus(1);
             }
-            list.add(new MyFollowerDto(member.getId(), member.getName(), member.getNickname(), null, isFollowed));
         }
 
-        return list;
+        return myFollower;
     }
 
     @Override
     public List<FollowingDto> getAllFollowing(Long myId, Long memberId) {
 
-        List<Member> Following = memberRepository.getAllFollowing(memberId);
+        List<FollowingDto> myFollowing = memberRepository.getAllFollowing(memberId).orElseThrow(FollowingNotFoundException::new);
 
-        List<FollowingDto> list = new ArrayList<>();
-        for (Member member : Following) {
-            Follow follow = memberRepository.isFollowed(myId, member.getId());
-            boolean isFollowed = false;
-            if (follow != null) {
-                isFollowed = true;
+        for (int i = 0; i < myFollowing.size(); i++) {
+            FollowingDto following = myFollowing.get(i);
+
+            if (memberRepository.isFollowed(myId, following.getMemberId()).orElse(null) != null) {
+                myFollowing.get(i).setFollowStatus(3);
+            } else if (memberRepository.isRequested(myId, following.getMemberId()).orElse(null) != null) {
+                myFollowing.get(i).setFollowStatus(2);
+            } else {
+                myFollowing.get(i).setFollowStatus(1);
             }
-            list.add(new FollowingDto(member.getId(), member.getName(), member.getNickname(), null, isFollowed));
         }
 
-        return list;
+        return myFollowing;
 
     }
 
     @Override
     public List<FollowerDto> getAllFollower(Long myId, Long memberId) {
-        List<Member> myFollower = memberRepository.getAllFollower(memberId);
 
-        List<FollowerDto> list = new ArrayList<>();
-        for (Member member : myFollower) {
-            Follow follow = memberRepository.isFollowed(myId, member.getId());
-            boolean isFollowed = false;
-            if (follow != null) {
-                isFollowed = true;
+        List<FollowerDto> myFollower = memberRepository.getAllFollower(memberId).orElseThrow(FollowerNotFoundException::new);
+
+        for (int i = 0; i < myFollower.size(); i++) {
+            FollowerDto follower = myFollower.get(i);
+
+            if (memberRepository.isFollowed(myId, follower.getMemberId()).orElse(null) != null) {
+                myFollower.get(i).setFollowStatus(3);
+            } else if (memberRepository.isRequested(myId, follower.getMemberId()).orElse(null) != null) {
+                myFollower.get(i).setFollowStatus(2);
+            } else {
+                myFollower.get(i).setFollowStatus(1);
             }
-            list.add(new FollowerDto(member.getId(), member.getName(), member.getNickname(), null, isFollowed));
         }
 
-        return list;
+        return myFollower;
     }
 
     @Transactional
@@ -217,24 +243,41 @@ public class MemberServiceImpl implements MemberService {
     public void follow(String email, Long memberId, boolean accept) {
 
         Member me = findMember(email);
-        Member you = memberRepository.findById(memberId).get();
+        Member you = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
 
         // 팔로우를 하려는 상대방의 계정이 공개일 때 -> 바로 팔로우
         // or 요청을 수락했을 때 -> 팔로우
-        if(you.isProfilePublic() || accept){
+        if (you.isProfilePublic() || accept) {
             Follow follow = Follow.builder()
                                   .following(you)
                                   .follower(me)
                                   .build();
             followRepository.save(follow);
+        } else {
+
+            /*    웹소켓 코드    */
+
+            // 비공개일 때 -> 팔로우 요청을 보내기
+            // 팔로우 요청이 곧 알림이어서 type1 알림 보내기
+            NotificationPostDto notification = NotificationPostDto.builder()
+                                                                  .senderId(me.getId())
+                                                                  .receiverId(you.getId())
+                                                                  .notifyType(1)
+                                                                  .build();
+            notificationService.saveNotification(notification);
+
         }
-        // 비공개일 때 -> 팔로우 요청을 보내기
-        // 그사람에게 보내는 알림이 곧 요청
 
-        /* 알림 저장하는 로직 추가 */
-        // 공개여서 바로 팔로우 했을 때만 알림 보내기
-        if(you.isProfilePublic()){
+        /*    웹소켓 코드    */
 
+        // 공개여서 바로 팔로우 했을 때 type2 알림 보내기
+        if (you.isProfilePublic()) {
+            NotificationPostDto notification = NotificationPostDto.builder()
+                                                                  .senderId(me.getId())
+                                                                  .receiverId(you.getId())
+                                                                  .notifyType(2)
+                                                                  .build();
+            notificationService.saveNotification(notification);
         }
 
     }
@@ -242,14 +285,14 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     @Override
     public void unfollow(Long myId, Long memberId) {
-        Follow follow = followRepository.findFollow(myId, memberId);
+        Follow follow = followRepository.findFollow(myId, memberId).orElseThrow(FollowNotFoundException::new);
         followRepository.delete(follow);
     }
 
     @Transactional
     @Override
     public void deleteFollower(Long myId, Long memberId) {
-        Follow follow = followRepository.findFollow(memberId, myId);
+        Follow follow = followRepository.findFollow(memberId, myId).orElseThrow(FollowNotFoundException::new);
         followRepository.delete(follow);
     }
 
@@ -265,25 +308,34 @@ public class MemberServiceImpl implements MemberService {
 
     @Transactional
     @Override
-    public void updateProfile(MemberUpdateDto member) {
-        Member me = memberRepository.findById(member.getMemberId()).get();
+    public void updateProfile(String email, MemberUpdateDto member) {
+
+        Member me = findMember(email);
+
+        if (!me.getId().equals(member.getMemberId())) {
+            throw new ProfileUpdateException();
+        }
+
+        Image image = imageRepository.findById(member.getProfileImageId()).orElseThrow(ImageNotFoundException::new);
+
+        me.uploadProfileImage(image);
         me.updateNickname(member.getNickname());
         me.updateIntro(member.getIntro());
         me.updateIsProfilePublic(member.isProfilePublic());
         me.updateIsNotifyEnable(member.isNotifyEnable());
-        /* 프로필이미지 처리 작성해야함 */
+
     }
 
     @Transactional
     @Override
-    public void updatePassword(Long myId, PasswordUpdateDto password) {
+    public void updatePassword(String email, PasswordUpdateDto password) {
 
         /* 비밀번호 불일치 */
         if (!password.getPassword().equals(password.getPasswordConfirm())) {
             throw new PasswordMismatchException();
         }
 
-        Member me = memberRepository.findById(myId).get();
+        Member me = findMember(email);
         me.updatePassword(passwordEncoder.encode(password.getPassword()));
 
     }
@@ -292,7 +344,7 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public void secession(SecessionRequestDto secession) {
 
-        Member member = memberRepository.findByEmail(secession.getEmail())
+        Member member = memberRepository.searchByEmail(secession.getEmail())
                                         .orElseThrow(InvalidLoginAttemptException::new);
 
         isPasswordMatchingWithEncoded(secession.getPassword(), member.getPassword());
@@ -314,10 +366,10 @@ public class MemberServiceImpl implements MemberService {
         return email;
     }
 
-    private Member findMemberByEmail(String email) {
-        Member member = memberRepository.findByEmail(email)
+    private Member searchMemberByEmail(String email) {
+        Member member = memberRepository.searchByEmail(email)
                                         .orElseThrow(EmailNotFoundException::new);
-        log.info("event=MemberFindByEmail, email={}", email);
+        log.info("event=MemberSearchByEmail, email={}", email);
         return member;
     }
 

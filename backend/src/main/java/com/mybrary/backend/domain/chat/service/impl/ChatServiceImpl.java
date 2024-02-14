@@ -1,25 +1,48 @@
 package com.mybrary.backend.domain.chat.service.impl;
 
-import com.mybrary.backend.domain.chat.dto.*;
-import com.mybrary.backend.domain.chat.entity.*;
-import com.mybrary.backend.domain.chat.repository.*;
+import com.mybrary.backend.domain.chat.dto.requestDto.ChatMessagePostDto;
+import com.mybrary.backend.domain.chat.dto.requestDto.MessageRequestDto;
+import com.mybrary.backend.domain.chat.dto.responseDto.ChatMessageResponseDto;
+import com.mybrary.backend.domain.chat.dto.responseDto.ChatRoomGetDto;
+import com.mybrary.backend.domain.chat.dto.responseDto.ChatRoomResponseDto;
+import com.mybrary.backend.domain.chat.dto.responseDto.TChatMessageGetDto;
+import com.mybrary.backend.domain.chat.dto.responseDto.TChatMessageWebSocketGetDto;
+import com.mybrary.backend.domain.chat.entity.ChatJoin;
+import com.mybrary.backend.domain.chat.entity.ChatMessage;
+import com.mybrary.backend.domain.chat.entity.ChatRoom;
+import com.mybrary.backend.domain.chat.repository.ChatJoinRepository;
+import com.mybrary.backend.domain.chat.repository.ChatMessageRepository;
+import com.mybrary.backend.domain.chat.repository.ChatRoomRepository;
 import com.mybrary.backend.domain.chat.service.ChatService;
-import com.mybrary.backend.domain.contents.thread.dto.ThreadShareGetDto;
+import com.mybrary.backend.domain.contents.thread.dto.responseDto.ThreadShareGetDto;
 import com.mybrary.backend.domain.contents.thread.repository.ThreadRepository;
-import com.mybrary.backend.domain.member.dto.MemberInfoDto;
+import com.mybrary.backend.domain.member.dto.responseDto.MemberInfoDto;
 import com.mybrary.backend.domain.member.entity.Member;
 import com.mybrary.backend.domain.member.repository.MemberRepository;
 import com.mybrary.backend.domain.member.service.MemberService;
-import org.springframework.data.domain.Pageable;
+import com.mybrary.backend.global.exception.chat.ChatJoinMemberNotFoundException;
+import com.mybrary.backend.global.exception.chat.ChatRoomNotFoundException;
+import com.mybrary.backend.global.exception.chat.InvalidChatRoomAccessException;
+import com.mybrary.backend.global.exception.member.EmailNotFoundException;
+import com.mybrary.backend.global.exception.member.MemberNotFoundException;
+import com.mybrary.backend.global.jwt.service.TokenService;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Transactional
+@Log4j2
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class ChatServiceImpl implements ChatService {
 
@@ -28,13 +51,74 @@ public class ChatServiceImpl implements ChatService {
     private final ChatMessageRepository chatMessageRepository;
     private final MemberRepository memberRepository;
     private final MemberService memberService;
-    private final SimpMessagingTemplate messagingTemplate;
     private final ThreadRepository threadRepository;
+    private final TokenService tokenService;
+    private final SimpMessagingTemplate messagingTemplate;
 
+    @Async
+    public CompletableFuture<Member> findSenderAsync(String email) {
+        return CompletableFuture.completedFuture(
+            memberRepository.searchByEmail(email).orElseThrow(EmailNotFoundException::new)
+        );
+    }
+
+    @Async
+    public CompletableFuture<ChatRoom> findChatRoomAsync(Long chatRoomId) {
+        return CompletableFuture.completedFuture(
+            chatRoomRepository.findById(chatRoomId).orElseThrow(ChatRoomNotFoundException::new)
+        );
+    }
+
+    @Transactional
+    @Override
+    public ChatMessageResponseDto save(String email, Long chatRoomId, MessageRequestDto requestDto) {
+
+        CompletableFuture<Member> senderFuture = findSenderAsync(email);
+        CompletableFuture<ChatRoom> chatRoomFuture = findChatRoomAsync(chatRoomId);
+
+        Member sender = senderFuture.join();
+        ChatRoom chatRoom = chatRoomFuture.join();
+        Member receiver = chatJoinRepository.findOtherMemberInChatRoom(chatRoomId, sender.getId())
+                                            .orElseThrow(ChatJoinMemberNotFoundException::new);
+
+        ChatMessage chatMessage = ChatMessage.builder()
+                                             .chatRoom(chatRoom)
+                                             .sender(sender)
+                                             .receiver(receiver)
+                                             .message(requestDto.getMessage())
+                                             .threadId(requestDto.getThreadId())
+                                             .build();
+        chatMessageRepository.save(chatMessage);
+
+        log.info("action = {}, email = {}, chatRoomId = {}, messageId = {}", "saveChatMessage",
+                 email, chatRoomId, chatMessage.getId());
+        return ChatMessageResponseDto.of(chatMessage, sender);
+    }
 
     @Transactional(readOnly = true)
     @Override
-    public List<ChatRoomGetDto> getAllChatRoom(String email, Pageable page) {
+    public Page<ChatRoomResponseDto> loadParticipatingChatRooms(String email, Pageable pageable) {
+        return chatRoomRepository.fetchMyChatRoomList(email, pageable);
+    }
+
+    @Override
+    public Page<ChatMessageResponseDto> loadMessagesByChatRoomId(String email, Long chatRoomId, Pageable pageable) {
+
+        if (!chatJoinRepository.isValidChatJoiner(chatRoomId, email)) {
+            throw new InvalidChatRoomAccessException();
+        }
+
+        Page<ChatMessageResponseDto> res = chatMessageRepository.getAllMessagesFromChatRoom(chatRoomId, pageable);
+        for (ChatMessageResponseDto re : res) {
+            System.out.println(re.getContent() + "     -> " + re.getTimestamp());
+        }
+
+        return res;
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<ChatRoomGetDto> getAllChatRoom(String email, Pageable pageable) {
 
         Member me = memberService.findMember(email);
         Long myId = me.getId();
@@ -49,7 +133,8 @@ public class ChatServiceImpl implements ChatService {
 //        List<Long> chatRoomIdList2 = chatRoomRepository.chatRoomIdList(myId, page);
 
         // 페이지네이션 한 코드
-        List<Long> chatRoomIdList = chatRoomRepository.chatRoomIdList2(myId, page);
+        List<Long> chatRoomIdList = chatRoomRepository.chatRoomIdList2(myId, pageable)
+                                                      .orElseThrow(ChatRoomNotFoundException::new);
 
         // 채팅방 리스트만큼 반복
         for (int i = 0; i < chatRoomIdList.size(); i++) {
@@ -58,8 +143,6 @@ public class ChatServiceImpl implements ChatService {
 
             // 2. 현재 채팅방에 참여하고 있는 상대방 정보
             Member member = chatRoomRepository.findJoinMemberByChatRoomId(myId, chatRoomId);
-            MemberInfoDto joinMember = new MemberInfoDto(member.getId(), member.getNickname(),
-                                                         member.getIntro(), null);
 
             // 3. 현재 채팅방의 최근 메세지
             ChatMessage recentMessage = chatRoomRepository.findRecentMessage(chatRoomId);
@@ -73,8 +156,8 @@ public class ChatServiceImpl implements ChatService {
             }
 
             // 결과 변수에 담기
-            list.add(new ChatRoomGetDto(chatRoomId, joinMember, recentMessage.getMessage(),
-                                        recentMessage.getCreatedAt(), count));
+//            list.add(new ChatRoomGetDto(chatRoomId, joinMember, recentMessage.getMessage(),
+//                                        recentMessage.getCreatedAt(), count));
         }
 
         return list;
@@ -94,8 +177,8 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public List<TChatMessageGetDto> getAllChatByChatRoomId(String email,
-                                                          Long chatRoomId, Pageable page) {
+    public Map<String, Object> getAllChatByChatRoomId(String email,
+                                                      Long chatRoomId, Pageable page) {
         Member me = memberService.findMember(email);
         Long myId = me.getId();
 
@@ -108,7 +191,8 @@ public class ChatServiceImpl implements ChatService {
         for (ChatMessage chatMessage : chatMessages) {
 
             // 2. 상대방 정보
-            Member you = chatJoinRepository.getJoinMemberByMemberId(chatRoomId, myId);
+            Member you = chatJoinRepository.findOtherMemberInChatRoom(chatRoomId, myId)
+                                           .orElseThrow(ChatJoinMemberNotFoundException::new);
 
             // 3. 스레드Id가 null이 아닐 때 스레드 조회
             ThreadShareGetDto thread = null;
@@ -123,16 +207,19 @@ public class ChatServiceImpl implements ChatService {
             }
 
             chatMessageList.add(new TChatMessageGetDto(chatMessage.getId(), you.getId(), chatMessage.getMessage(),
-                                           thread, chatMessage.isRead(), chatMessage.getCreatedAt()));
+                                                       thread, chatMessage.isRead(), chatMessage.getCreatedAt()));
         }
 
-        return chatMessageList;
+        Map<String, Object> map = new HashMap<>();
+        map.put("chatRoomId", chatRoomId);
+        map.put("chatMessageList", chatMessageList);
+        return map;
 
     }
 
     @Override
-    public List<TChatMessageGetDto> getAllChatByMemberId(String email,
-                                                        Long memberId, Pageable page) {
+    public Map<String, Object> getAllChatByMemberId(String email,
+                                                    Long memberId, Pageable page) {
 
         Member me = memberService.findMember(email);
         Long myId = me.getId();
@@ -183,7 +270,7 @@ public class ChatServiceImpl implements ChatService {
         Member me = memberService.findMember(email);
         Long myId = me.getId();
         // 보내는 사람 객체 MemberInfoDto
-        MemberInfoDto sender = memberRepository.getMemberInfo(myId);
+        MemberInfoDto sender = memberRepository.getMemberInfo(myId).orElseThrow(MemberNotFoundException::new);
 
         // 채팅방 엔티티
         ChatRoom chatRoom = chatRoomRepository.findById(message.getChatRoomId()).get();
@@ -205,14 +292,13 @@ public class ChatServiceImpl implements ChatService {
 
         // 웹소켓 주소로 보내야할 객체 TChatMessageWebSocketGetDto
         TChatMessageWebSocketGetDto sendMessage = TChatMessageWebSocketGetDto.builder()
-            .chatId(savedMessage.getId())
-            .sender(sender)
-            .message(savedMessage.getMessage())
-            .thread(null)
-            .isRead(savedMessage.isRead())
-            .createdAt(savedMessage.getCreatedAt())
-            .build();
-
+                                                                             .chatId(savedMessage.getId())
+                                                                             .sender(sender)
+                                                                             .message(savedMessage.getMessage())
+                                                                             .thread(null)
+                                                                             .isRead(savedMessage.isRead())
+                                                                             .createdAt(savedMessage.getCreatedAt())
+                                                                             .build();
 
         // 웹소켓 메서드
         String destination = "/sub/chat/" + receiver.getEmail(); // 구독 주소 + 받을 사람 이메일
@@ -228,7 +314,7 @@ public class ChatServiceImpl implements ChatService {
         Member me = memberService.findMember(email);
         Long myId = me.getId();
         // 보내는 사람 객체 MemberInfoDto
-        MemberInfoDto sender = memberRepository.getMemberInfo(myId);
+        MemberInfoDto sender = memberRepository.getMemberInfo(myId).orElseThrow(MemberNotFoundException::new);
 
         // 채팅방 엔티티
         ChatRoom chatRoom;
@@ -243,11 +329,11 @@ public class ChatServiceImpl implements ChatService {
                 chatRoomRepository.save(chatRoom);
             }
         } else {
-            chatRoom = chatRoomRepository.findById(message.getChatRoomId()).get();
+            chatRoom = chatRoomRepository.findById(message.getChatRoomId()).orElseThrow(ChatRoomNotFoundException::new);
         }
 
         // 받는 회원 엔티티
-        Member receiver = memberRepository.findById(message.getReceiverId()).get();
+        Member receiver = memberRepository.findById(message.getReceiverId()).orElseThrow(MemberNotFoundException::new);
 
         // 채팅 엔티티
         ChatMessage newMessage = ChatMessage.builder()
@@ -273,7 +359,6 @@ public class ChatServiceImpl implements ChatService {
                                                                              .isRead(savedMessage.isRead())
                                                                              .createdAt(savedMessage.getCreatedAt())
                                                                              .build();
-
 
         // 웹소켓 메서드
         String destination = "/sub/chat/" + receiver.getEmail(); // 구독 주소 + 받을 사람 이메일

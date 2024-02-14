@@ -1,16 +1,16 @@
 package com.mybrary.backend.domain.member.controller;
 
-import com.mybrary.backend.domain.member.dto.FollowerDto;
-import com.mybrary.backend.domain.member.dto.FollowingDto;
-import com.mybrary.backend.domain.member.dto.LoginRequestDto;
-import com.mybrary.backend.domain.member.dto.MemberUpdateDto;
-import com.mybrary.backend.domain.member.dto.MyFollowerDto;
-import com.mybrary.backend.domain.member.dto.MyFollowingDto;
-import com.mybrary.backend.domain.member.dto.PasswordUpdateDto;
-import com.mybrary.backend.domain.member.dto.SecessionRequestDto;
-import com.mybrary.backend.domain.member.dto.SignupRequestDto;
 import com.mybrary.backend.domain.member.dto.email.EmailCheckRequestDto;
 import com.mybrary.backend.domain.member.dto.email.EmailValidationRequestDto;
+import com.mybrary.backend.domain.member.dto.requestDto.LoginRequestDto;
+import com.mybrary.backend.domain.member.dto.requestDto.MemberUpdateDto;
+import com.mybrary.backend.domain.member.dto.requestDto.PasswordUpdateDto;
+import com.mybrary.backend.domain.member.dto.requestDto.SecessionRequestDto;
+import com.mybrary.backend.domain.member.dto.requestDto.SignupRequestDto;
+import com.mybrary.backend.domain.member.dto.responseDto.FollowerDto;
+import com.mybrary.backend.domain.member.dto.responseDto.FollowingDto;
+import com.mybrary.backend.domain.member.dto.responseDto.MyFollowerDto;
+import com.mybrary.backend.domain.member.dto.responseDto.MyFollowingDto;
 import com.mybrary.backend.domain.member.entity.Member;
 import com.mybrary.backend.domain.member.service.MailService;
 import com.mybrary.backend.domain.member.service.MemberService;
@@ -37,9 +37,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
 @Tag(name = "Member 컨트롤러", description = "Member Controller API")
 @RestController
@@ -225,9 +223,8 @@ public class MemberController {
     @Operation(summary = "회원 정보 수정", description = "닉네임, 프로필이미지, 소개,  수정")
     @PutMapping("/profile")
     public ResponseEntity<?> updateProfile(@Parameter(hidden = true) Authentication authentication,
-                                           @RequestBody MemberUpdateDto member, @RequestParam
-                                           MultipartFile multipartFile) {
-        memberService.updateProfile(member);
+                                           @RequestBody MemberUpdateDto member) {
+        memberService.updateProfile(authentication.getName(), member);
         return response.success(ResponseCode.MEMBER_INFO_UPDATE_SUCCESS.getMessage());
     }
 
@@ -235,9 +232,7 @@ public class MemberController {
     @PutMapping("/password-update")
     public ResponseEntity<?> updatePassword(@Parameter(hidden = true) Authentication authentication,
                                             @RequestBody PasswordUpdateDto password) {
-        Member me = memberService.findMember(authentication.getName());
-        Long myId = me.getId();
-        memberService.updatePassword(myId, password);
+        memberService.updatePassword(authentication.getName(), password);
         return response.success(ResponseCode.PASSWORD_UPDATE_SUCCESS.getMessage());
     }
 
