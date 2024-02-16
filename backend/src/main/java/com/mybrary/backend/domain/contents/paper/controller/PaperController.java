@@ -1,9 +1,8 @@
 package com.mybrary.backend.domain.contents.paper.controller;
 
-import com.mybrary.backend.domain.chat.dto.ChatMessagePostDto;
+import com.mybrary.backend.domain.chat.dto.requestDto.ChatMessagePostDto;
 import com.mybrary.backend.domain.chat.service.ChatService;
-import com.mybrary.backend.domain.contents.paper.dto.PaperScrapDto;
-import com.mybrary.backend.domain.contents.paper.dto.PaperShareDto;
+import com.mybrary.backend.domain.contents.paper.dto.requestDto.PaperScrapDto;
 import com.mybrary.backend.domain.contents.paper.service.PaperService;
 import com.mybrary.backend.domain.member.entity.Member;
 import com.mybrary.backend.domain.member.service.MemberService;
@@ -34,14 +33,19 @@ public class PaperController {
 
     @Operation(summary = "페이퍼 스크랩", description = "페이퍼 스크랩")
     @PostMapping("/scrap")
-    public ResponseEntity<?> scrapPaper(@Parameter(hidden = true) Authentication authentication,
+    public ResponseEntity<?> scrapPaper(
+        @Parameter(hidden = true) Authentication authentication,
         @RequestBody PaperScrapDto scrap) {
-        return response.success(ResponseCode.PAPER_SCRAPPED, paperService.scrapPaper(scrap));
+
+        Member member = memberService.findMember(authentication.getName());
+        Long myId = member.getId();
+        return response.success(ResponseCode.PAPER_SCRAPPED, paperService.scrapPaper(myId, scrap));
     }
 
     @Operation(summary = "페이퍼 공유", description = "페이퍼 다른 사용자에게 공유")
     @PostMapping("/share")
-    public ResponseEntity<?> sharePaper(@Parameter(hidden = true) Authentication authentication,
+    public ResponseEntity<?> sharePaper(
+        @Parameter(hidden = true) Authentication authentication,
         @RequestBody ChatMessagePostDto thread) {
 
         Member member = memberService.findMember(authentication.getName());
@@ -53,11 +57,13 @@ public class PaperController {
 
     @Operation(summary = "페이퍼 좋아요", description = "페이퍼 좋아요 또는 좋아요 취소 요청")
     @PostMapping("{id}/toggle-like")
-    public ResponseEntity<?> toggleLike(@Parameter(hidden = true) Authentication authentication,
-        @PathVariable(name = "id") Long paperId,
-        @RequestBody Long memberId) {
-        /* responseCode 수정해야함 */
-        return response.success(ResponseCode.PAPER_SCRAPPED, paperService.toggleLike(memberId, paperId));
+    public ResponseEntity<?> toggleLike(
+        @Parameter(hidden = true) Authentication authentication,
+        @PathVariable(name = "id") Long paperId) {
+
+        Member member = memberService.findMember(authentication.getName());
+        Long myId = member.getId();
+        return response.success(ResponseCode.PAPER_SCRAPPED, paperService.toggleLike(myId, paperId));
     }
 
 }

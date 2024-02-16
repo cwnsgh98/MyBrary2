@@ -1,31 +1,34 @@
 package com.mybrary.backend.domain.book.service;
 
-import com.mybrary.backend.domain.book.dto.BookGetDto;
-import com.mybrary.backend.domain.book.dto.BookListGetDto;
-import com.mybrary.backend.domain.book.dto.BookPostDto;
-import com.mybrary.backend.domain.book.dto.BookSubscribeDto;
-import com.mybrary.backend.domain.book.dto.BookUpdateDto;
+import com.mybrary.backend.domain.book.dto.responseDto.BookGetDto;
+import com.mybrary.backend.domain.book.dto.responseDto.BookListGetFromPaperDto;
+import com.mybrary.backend.domain.book.dto.responseDto.BookPaperGetDto;
+import com.mybrary.backend.domain.book.dto.requestDto.BookPostDto;
+import com.mybrary.backend.domain.book.dto.requestDto.BookSubscribeDto;
+import com.mybrary.backend.domain.book.dto.requestDto.BookUpdateDto;
+import com.mybrary.backend.domain.category.dto.responseDto.MyCategoryGetDto;
 import java.util.List;
 
 public interface BookService {
 
-    BookListGetDto getBookList(Long memberId);
+    List<MyCategoryGetDto> getMyBookList(Long memberId);
 
-    Long createBook(BookPostDto bookPostDto);
+    Long createBook(String email, BookPostDto bookPostDto);
 
-    BookGetDto getBookInfo(Long bookId);
+    BookPaperGetDto getBookInfo(String email, Long bookId);
 
-    Long updateBook(BookUpdateDto bookUpdateDto);
+    Long updateBook(String email, BookUpdateDto bookUpdateDto);
 
-    Long deleteBook(Long bookId);
+    void deleteBook(String email, Long bookId);
 
-    Long subscribeBook(BookSubscribeDto bookSubscribeDto);
+    Long subscribeBook(String email, BookSubscribeDto bookSubscribeDto);
 
-    Long unsubscribeBook(Long bookId);
+    Long unsubscribeBook(String email, Long bookId);
 
-    List<BookGetDto> getAllBookByCategoryId(Long categoryId);
+    List<BookGetDto> getAllBookByCategoryId(String email, Long categoryId);
 
-    Long deletePaperFromBook(Long bookId, List<Long> paperIdList);
+    void deletePaperFromBook(String email, Long bookId, Long paperId);
 
-    List<BookListGetFromPaperDto> getBookListFromPaper(Long paperId);
+    List<BookListGetFromPaperDto> getBookListFromPaper(Long memberId, Long paperId);
+
 }

@@ -1,8 +1,18 @@
 package com.mybrary.backend.domain.contents.paper.entity;
 
 import com.mybrary.backend.domain.base.BaseEntity;
+import com.mybrary.backend.domain.comment.entity.Comment;
+import com.mybrary.backend.domain.contents.like.entity.Like;
+import com.mybrary.backend.domain.contents.paper.dto.requestDto.PaperUpdateDto;
+import com.mybrary.backend.domain.contents.paper.dto.requestDto.PostPaperDto;
+import com.mybrary.backend.domain.contents.paper_image.entity.PaperImage;
+import com.mybrary.backend.domain.contents.scrap.entity.Scrap;
+import com.mybrary.backend.domain.contents.tag.entity.Tag;
+import com.mybrary.backend.domain.contents.thread.dto.requestDto.ThreadPostDto;
+import com.mybrary.backend.domain.contents.thread.dto.requestDto.ThreadUpdateDto;
 import com.mybrary.backend.domain.contents.thread.entity.Thread;
 import com.mybrary.backend.domain.member.entity.Member;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -11,6 +21,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -60,6 +73,9 @@ public class Paper extends BaseEntity {
     @Column(name = "like_count")
     private int likeCount;
 
+    @Column(name = "mention_list")
+    private String mentionList;
+
     @Builder.Default()
     @Column(name = "is_scrap_enabled")
     private boolean isScrapEnabled = true;
@@ -67,5 +83,56 @@ public class Paper extends BaseEntity {
     @Builder.Default()
     @Column(name = "is_paper_public")
     private boolean isPaperPublic = true;
+
+    /* 스크랩과 양방향 설정 */
+    @Builder.Default
+    @OneToMany(mappedBy = "paper", cascade = {CascadeType.REMOVE, CascadeType.PERSIST})
+    private List<Scrap> scrapList = new ArrayList<>();
+
+    /* comment 양방향 설정 */
+    @Builder.Default
+    @OneToMany(mappedBy = "paper", cascade = {CascadeType.REMOVE, CascadeType.PERSIST})
+    private List<Comment> commentList = new ArrayList<>();
+
+    /* tag 양방향 설정 */
+    @Builder.Default
+    @OneToMany(mappedBy = "paper", cascade = {CascadeType.REMOVE, CascadeType.PERSIST})
+    private List<Tag> tagList = new ArrayList<>();
+
+    /* like 양방향 설정 */
+    @Builder.Default
+    @OneToMany(mappedBy = "paper", cascade = {CascadeType.REMOVE, CascadeType.PERSIST})
+    private List<Like> likeList = new ArrayList<>();
+
+    /* paperImage 양방향 설정 */
+    @Builder.Default
+    @OneToMany(mappedBy = "paper", cascade = {CascadeType.REMOVE, CascadeType.PERSIST})
+    private List<PaperImage> paperImageList = new ArrayList<>();
+
+    public static Paper of(Member member, Thread thread, PostPaperDto postPaperDto,
+                           String mentionList, ThreadPostDto threadPostDto) {
+        return Paper.builder()
+                    .member(member)
+                    .thread(thread)
+                    .layoutType(postPaperDto.getLayoutType())
+                    .content1(postPaperDto.getContent1())
+                    .content2(postPaperDto.getContent2())
+                    .mentionList(mentionList)
+                    .isPaperPublic(threadPostDto.isPaperPublic())
+                    .isScrapEnabled(threadPostDto.isScrapEnable())
+                    .build();
+    }
+
+    public void update(PaperUpdateDto paperUpdateDto, ThreadUpdateDto threadUpdateDto) {
+        this.layoutType = paperUpdateDto.getLayoutType();
+        this.content1 = paperUpdateDto.getContent1();
+        this.content2 = paperUpdateDto.getContent2();
+        this.isScrapEnabled = threadUpdateDto.isScrapEnable();
+        this.isPaperPublic = threadUpdateDto.isPaperPublic();
+    }
+
+    public void updateMentionList(String mentionList) {
+        this.mentionList = mentionList;
+    }
 
 }

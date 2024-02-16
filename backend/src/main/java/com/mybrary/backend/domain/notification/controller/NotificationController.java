@@ -1,6 +1,6 @@
 package com.mybrary.backend.domain.notification.controller;
 
-import com.mybrary.backend.domain.member.dto.MemberInfoDto;
+import com.mybrary.backend.domain.member.dto.responseDto.MemberInfoDto;
 import com.mybrary.backend.domain.member.entity.Member;
 import com.mybrary.backend.domain.member.service.MemberService;
 import com.mybrary.backend.domain.notification.dto.NotificationGetDto;
@@ -21,9 +21,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Notification 컨트롤러", description = "Notification Controller API")
@@ -44,21 +42,6 @@ public class NotificationController {
         Member member = memberService.findMember(authentication.getName());
         Long myId = member.getId();
 
-        MemberInfoDto member1 = new MemberInfoDto(1L, "wnsgh", "안녕하세요 최준호입니다", "123123");
-        MemberInfoDto member2 = new MemberInfoDto(2L, "aksrl", "안녕하세요 서만기입니다", "666666");
-        MemberInfoDto member3 = new MemberInfoDto(3L, "gPtjs", "안녕하세요 박혜선입니다", "145643");
-        MemberInfoDto member4 = new MemberInfoDto(4L, "thdud", "안녕하세요 최소영입니다", "000000");
-
-        NotificationGetDto notify1 = new NotificationGetDto(1L, member1, 3, null, null, 3L, 4L, 5L, null);
-        NotificationGetDto notify2 = new NotificationGetDto(2L, member2, 9, null, null, 3L, 4L, null, null);
-        NotificationGetDto notify3 = new NotificationGetDto(3L, member3, 12, null, null, null, null, null, null);
-        NotificationGetDto notify4 = new NotificationGetDto(4L, member4, 9, 1L, "여행책", null, null, null, null);
-
-        List<NotificationGetDto> list = new ArrayList<>();
-        list.add(notify1);
-        list.add(notify2);
-        list.add(notify3);
-        list.add(notify4);
 
         List<NotificationGetDto> result = notificationService.getAllNotification(myId, page);
 
@@ -93,10 +76,10 @@ public class NotificationController {
     public ResponseEntity<?> followAccept(@Parameter(hidden = true) Authentication authentication,
                                           @PathVariable(name = "id") Long notificationId) {
 
-        String followerEmail = notificationService.findFollower(notificationId); // sender
-        Long followingId = notificationService.findFollowing(notificationId); // receiver
-        memberService.follow(followerEmail, followingId, true);
-        return response.success(ResponseCode.FOLLOWER_DELETE_SUCCESS.getMessage());
+
+
+        int data = notificationService.followAccept(notificationId);
+        return response.success(ResponseCode.FOLLOWER_DELETE_SUCCESS, data);
 
     }
 

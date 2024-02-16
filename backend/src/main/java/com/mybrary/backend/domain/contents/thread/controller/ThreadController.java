@@ -1,16 +1,17 @@
 package com.mybrary.backend.domain.contents.thread.controller;
 
-import com.mybrary.backend.domain.contents.thread.dto.ThreadPostDto;
-import com.mybrary.backend.domain.contents.thread.dto.ThreadUpdateDto;
+import com.mybrary.backend.domain.contents.thread.dto.requestDto.ThreadPostDto;
+import com.mybrary.backend.domain.contents.thread.dto.requestDto.ThreadUpdateDto;
 import com.mybrary.backend.domain.contents.thread.service.ThreadService;
+import com.mybrary.backend.domain.member.entity.Member;
+import com.mybrary.backend.domain.member.service.MemberService;
 import com.mybrary.backend.global.format.code.ApiResponse;
 import com.mybrary.backend.global.format.response.ResponseCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.io.IOException;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -24,8 +25,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
+@Log4j2
 @Tag(name = "Thread 컨트롤러", description = "Thread Controller API")
 @RestController
 @RequiredArgsConstructor
@@ -34,60 +35,81 @@ public class ThreadController {
 
     private final ApiResponse response;
     private final ThreadService threadService;
-
+    private final MemberService memberService;
 
     @Operation(summary = "쓰레드 생성", description = "쓰레드 생성")
     @PostMapping
     public ResponseEntity<?> createThread(@Parameter(hidden = true) Authentication authentication,
-        @RequestParam(required = false) List<MultipartFile> files,
-        @RequestBody ThreadPostDto threadPostDto )
-        throws IOException {
+                                          @RequestBody ThreadPostDto threadPostDto) {
+
         return response.success(ResponseCode.THREAD_CREATED,
-            threadService.createThread(files, threadPostDto));
+                                threadService.createThread(authentication.getName(), threadPostDto));
     }
+
     @Operation(summary = "메인홈 쓰레드 조회", description = "메인홈에서의 쓰레드 목록 조회")
     @GetMapping("/home")
     public ResponseEntity<?> getMainAllThread(
         @Parameter(hidden = true) Authentication authentication,
-        @RequestParam(name = "page") int number,
-        @RequestBody Long memberId,
-        @PageableDefault(page = 0, size = 10) Pageable pageable) {
+        @RequestParam(name = "page") int page) {
+        Member me = memberService.findMember(authentication.getName());
+        Long myId = me.getId();
         return response.success(ResponseCode.MAIN_THREAD_LIST_FETCHED,
-            threadService.getMainAllThread(memberId, pageable));
+                                threadService.getMainAllThread(myId, page));
     }
+
     @Operation(summary = "나의 쓰레드 조회", description = "나의 마이브러리 책상에서의 쓰레드 목록 조회")
     @GetMapping("/desk")
     public ResponseEntity<?> getMyAllThread(
         @Parameter(hidden = true) Authentication authentication,
-        @RequestBody Long memberId,
         @PageableDefault(page = 0, size = 10) Pageable page) {
+        Member me = memberService.findMember(authentication.getName());
+        Long myId = me.getId();
         return response.success(ResponseCode.MY_THREAD_LIST_FETCHED,
-            threadService.getMyAllThread(memberId, page));
+                                threadService.getMyAllThread(myId, page));
     }
-    @Operation(summary = "특정 회원의 쓰레드 조회", description = "회원 아이디를 통한 특정 회원의 마이브러리 책상에서의 쓰레드 목록 조회")
+
+    @Operation(summary = "특정 회원의 쓰레드 조회", description = "특정 회원의 마이브러리 책상에서의 쓰레드 목록 조회")
     @GetMapping("/{id}/desk")
     public ResponseEntity<?> getOtherAllThread(
         @Parameter(hidden = true) Authentication authentication,
-        @RequestBody Long memberId,
+        @PathVariable(name = "id") Long memberId,
         @PageableDefault(page = 0, size = 10) Pageable page) {
-        return response.success(ResponseCode.MY_THREAD_LIST_FETCHED,
-            threadService.getOtherAllThread(memberId, page));
+        Member me = memberService.findMember(authentication.getName());
+        Long myId = me.getId();
+        return response.success(ResponseCode.OTHER_MEMBER_THREAD_LIST_FETCHED,
+                                threadService.getOtherAllThread(authentication.getName(), memberId, page));
     }
+
     @Operation(summary = "쓰레드 수정", description = "쓰레드 수정")
     @PutMapping
     public ResponseEntity<?> updateThread(@Parameter(hidden = true) Authentication authentication,
-        @RequestBody ThreadUpdateDto threadUpdateDto) {
-        return response.success(ResponseCode.THREAD_UPDATED, threadService.updateThread(threadUpdateDto));
+                                          @RequestBody ThreadUpdateDto threadUpdateDto) {
+        Member me = memberService.findMember(authentication.getName());
+        Long myId = me.getId();
+        return response.success(ResponseCode.THREAD_UPDATED, threadService.updateThread(myId, threadUpdateDto));
     }
+
     @Operation(summary = "쓰레드 삭제", description = "쓰레드 아이디를 통한 쓰레드 삭제")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteThread(@Parameter(hidden = true) Authentication authentication,
-        @PathVariable(name = "id") Long threadId) {
+                                          @PathVariable(name = "id") Long threadId) {
+        Member me = memberService.findMember(authentication.getName());
+        Long myId = me.getId();
         return response.success(ResponseCode.THREAD_DELETED,
-            threadService.deleteThread(threadId));
+                                threadService.deleteThread(myId, threadId));
     }
 
+    @Operation(summary = "쓰레드 단건 조회", description = "쓰레드 아이디를 통한 쓰레드 조회")
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getThread(
+        @Parameter(hidden = true) Authentication authentication,
+        @PathVariable(name = "id") Long threadId) {
+        Member me = memberService.findMember(authentication.getName());
+        Long myId = me.getId();
+        return response.success(ResponseCode.CONTENTS_SEARCHED,
+                                threadService.getThread(authentication.getName(), myId, threadId));
 
+    }
 
 //    @Operation(summary = "쓰레드 단건 조회", description = "쓰레드 아이디를 통한 쓰레드 조회")
 //    @GetMapping("/{id}")

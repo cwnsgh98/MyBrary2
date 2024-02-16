@@ -1,24 +1,33 @@
 package com.mybrary.backend.domain.chat.service;
 
-import com.mybrary.backend.domain.chat.dto.ChatMessagePostDto;
-import com.mybrary.backend.domain.chat.dto.ChatRoomGetDto;
-import com.mybrary.backend.domain.chat.dto.TChatMessageGetDto;
-import org.springframework.data.domain.Pageable;
+import com.mybrary.backend.domain.chat.dto.requestDto.ChatMessagePostDto;
+import com.mybrary.backend.domain.chat.dto.requestDto.MessageRequestDto;
+import com.mybrary.backend.domain.chat.dto.responseDto.ChatMessageResponseDto;
+import com.mybrary.backend.domain.chat.dto.responseDto.ChatRoomGetDto;
+import com.mybrary.backend.domain.chat.dto.responseDto.ChatRoomResponseDto;
+import com.mybrary.backend.domain.chat.dto.responseDto.TChatMessageGetDto;
 import java.util.List;
-import org.springframework.security.core.Authentication;
+import java.util.Map;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface ChatService {
+
+    ChatMessageResponseDto save(String email, Long chatRoomId, MessageRequestDto messageRequestDto);
+
+    Page<ChatRoomResponseDto> loadParticipatingChatRooms(String email, Pageable pageable);
+
+    Page<ChatMessageResponseDto> loadMessagesByChatRoomId(String email, Long chatRoomId, Pageable pageable);
 
     List<ChatRoomGetDto> getAllChatRoom(String email, Pageable page);
 
     void deleteChatRoom(String email, Long chatRoomId);
 
-    List<TChatMessageGetDto> getAllChatByChatRoomId(String email, Long chatRoomId, Pageable page);
+    Map<String, Object> getAllChatByChatRoomId(String email, Long chatRoomId);
 
-    List<TChatMessageGetDto> getAllChatByMemberId(String email, Long memberId, Pageable page);
+    Map<String, Object> getAllChatByMemberId(String email, Long memberId, Pageable page);
 
     Long createChat(String email, ChatMessagePostDto message);
 
     Long threadShare(String email, ChatMessagePostDto message);
-
 }
